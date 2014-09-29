@@ -10,16 +10,8 @@ package lotto.views {
 
 	public class RootView extends Sprite{
 
-	private var _screensCont:Sprite;
-
 	public function RootView() {
-		_screensCont = new Sprite();
-		addChild(_screensCont);
 
-	}
-
-	public function get screensCont():Sprite {
-		return _screensCont;
 	}
 }
 }

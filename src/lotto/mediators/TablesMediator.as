@@ -11,6 +11,9 @@ package lotto.mediators {
 
 	import robotlegs.bender.extensions.starlingViewMap.impl.StarlingMediator;
 
+	import starling.display.Image;
+	import starling.display.Quad;
+
 	import starling.events.Event;
 
 	import vo.PTable;
@@ -120,7 +123,15 @@ import flash.text.engine.ElementFormat;
 
 import lotto.Assets;
 
+import lotto.Assets;
+import lotto.themes.LottoTheme;
+
 import starling.display.Image;
+import starling.display.MovieClip;
+import starling.display.Quad;
+import starling.display.Sprite;
+import starling.textures.Texture;
+import starling.utils.AssetManager;
 
 import vo.PTable;
 
@@ -129,7 +140,7 @@ class PTableListRenderer extends DefaultListItemRenderer {
 	private var _avatarBg:Image;
 	private var _avatar:ImageLoader;
 	private var _ptable:PTable;
-	private var _users:Label;
+	private var _users:RatingView;
 	private var _bet:Label;
 	private var _name:Label;
 	private var _layoutGroup:LayoutGroup;
@@ -139,22 +150,28 @@ class PTableListRenderer extends DefaultListItemRenderer {
 		_avatarBg = new Image(Assets.get(Assets.AvatarTable));
 		_avatar = new ImageLoader();
 		_avatar.setSize(63,63);
-		_avatar.x = 13;
+		_avatar.x = 12;
 		_avatar.y = 13;
 		_layoutGroup = new LayoutGroup();
-		_users = new Label();
 		_bet = new Label();
 		_name = new Label();
+		_users = new RatingView(Assets.get(Assets.TablePerson), Assets.get(Assets.TablePersonH));
+		applyTheme();
+
 		_layoutGroup.addChild(_avatarBg);
 		_layoutGroup.addChild(_avatar);
 		_layoutGroup.addChild(_name);
 		_layoutGroup.addChild(_users);
 		_layoutGroup.addChild(_bet);
+
+		_users.x = _avatarBg.x + _avatarBg.width;
+		_users.y = _avatarBg.y + _avatarBg.height - _users.height;
+
 		addChild(_layoutGroup);
 		_layoutGroup.layout = new AnchorLayout();
 		var nameLayout:AnchorLayoutData = new AnchorLayoutData();
-		nameLayout.horizontalCenter = 0;
-		nameLayout.verticalCenter = 0;
+		nameLayout.left = 10;
+		nameLayout.leftAnchorDisplayObject = _avatarBg;
 		_name.layoutData = nameLayout;
 
 		var betLayout:AnchorLayoutData = new AnchorLayoutData();
@@ -166,7 +183,15 @@ class PTableListRenderer extends DefaultListItemRenderer {
 		this.labelFunction = function(data:Object):String {
 			return "";
 		}
-		this.height = 100;
+		this.height = 120;
+		var background:Quad = new Quad(10,10);
+		background.alpha = 0;
+		this.defaultSkin = background;
+	}
+
+	private function applyTheme():void {
+		_bet.nameList.add(LottoTheme.LOTTO_BET_LABEL);
+		_name.nameList.add("dark-label");
 	}
 
 	override protected function layoutContent():void {
@@ -180,10 +205,60 @@ class PTableListRenderer extends DefaultListItemRenderer {
 		super.data = value;
 		if(_data) {
 			_ptable = _data as PTable;
-			_users.text = _ptable.userIds.length.toString();
 			_bet.text = _ptable.bet.toString();
 			_name.text = _ptable.owner.name;
+			_users.fill = _ptable.userIds.length;
 			_avatar.source = _ptable.owner.avatarUrl;
 		}
+	}
+}
+
+class RatingView extends Sprite {
+
+	private var _texture1:Texture;
+	private var _texture2:Texture;
+
+	private var _count:int;
+	private var _fill:int;
+	private var _movieClips:Vector.<MovieClip>;
+
+	public function RatingView(texture1:Texture, texture2:Texture, count:int = 5){
+		_texture1 = texture1;
+		_texture2 = texture2;
+		_count = count;
+
+		createView();
+		this.fill = 0;
+	}
+
+	private function createView():void {
+		var x:Number = 0;
+		_movieClips = new Vector.<MovieClip>();
+		for (var i:int = 0; i < _count; i++) {
+			var mc:MovieClip = new MovieClip(Vector.<Texture>([_texture1, _texture2]));
+			mc.x = x;
+			x += mc.width;
+			addChild(mc);
+			_movieClips.push(mc);
+		}
+	}
+
+	public function get fill():int {
+		return _fill;
+	}
+
+	public function set fill(value:int):void {
+		_fill = value;
+		for (var i:int = 0; i < _movieClips.length; i++) {
+			var mc:MovieClip = _movieClips[i];
+			mc.currentFrame = i >= _fill ? 1 : 0;
+		}
+	}
+
+	override public function dispose():void {
+		_movieClips = null;
+		_texture1 = null;
+		_texture2 = null;
+		super.dispose();
 	}
 }

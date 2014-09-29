@@ -19,6 +19,7 @@
         </dependencies>
         <compiler-options>
           <option name="additionalConfigFilePath" value="$MODULE_DIR$/LottoCompilerConfig.xml" />
+          <option name="additionalOptions" value="-advanced-telemetry=true" />
         </compiler-options>
         <packaging-air-desktop />
         <packaging-android enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/Lotto-app.xml" package-file-name="Lotto">

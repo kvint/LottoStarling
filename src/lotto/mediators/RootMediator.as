@@ -17,6 +17,7 @@ package lotto.mediators {
 	import lotto.screens.RoomScreen;
 	import lotto.screens.TablesScreen;
 	import lotto.screens.WelcomeScreen;
+	import lotto.themes.LottoTheme;
 	import lotto.views.RootView;
 
 	import robotlegs.bender.extensions.starlingViewMap.impl.StarlingMediator;
@@ -58,7 +59,7 @@ package lotto.mediators {
 
 			_stage.addEventListener(KeyboardEvent.KEY_DOWN, keyboardHandler);
 
-			new MetalWorksMobileTheme();
+			new LottoTheme();
 
 			_navigator = new ScreenNavigator();
 			_navigator.addScreen(SCREEN_WELCOME, new ScreenNavigatorItem(WelcomeScreen));
