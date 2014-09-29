@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="Flex" version="4">
+  <component name="FlexBuildConfigurationManager" active="LottoAndroid">
+    <configurations>
+      <configuration name="LottoAndroid" target-platform="Mobile" pure-as="true" main-class="Main" output-file="Lotto.swf" output-folder="$MODULE_DIR$/bin">
+        <dependencies target-player="11.9">
+          <entries>
+            <entry library-id="85e06ed1-0a15-4d42-8b7d-b6ac6fe0259b">
+              <dependency linkage="Merged" />
+            </entry>
+            <entry library-id="13dcc7e0-38e4-4b78-9d86-a17c86674f78">
+              <dependency linkage="Merged" />
+            </entry>
+            <entry library-id="4fbed81f-a866-4bf7-87f4-e48e9bbe43bc">
+              <dependency linkage="Merged" />
+            </entry>
+          </entries>
+          <sdk name="AIR SDK 15.0.0" />
+        </dependencies>
+        <compiler-options>
+          <option name="additionalConfigFilePath" value="$MODULE_DIR$/LottoCompilerConfig.xml" />
+        </compiler-options>
+        <packaging-air-desktop />
+        <packaging-android enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/Lotto-app.xml" package-file-name="Lotto">
+          <AirSigningOptions keystore-path="$DOCUMENTS$/PlaytiANE/playtika-slotomania.p12" use-temp-certificate="false" />
+        </packaging-android>
+        <packaging-ios package-file-name="Lotto" />
+      </configuration>
+    </configurations>
+    <compiler-options />
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ext" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/yzh44yzh" isTestSource="false" />
+    </content>
+    <orderEntry type="jdk" jdkName="AIR SDK 15.0.0" jdkType="Flex SDK Type (new)" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library" exported="">
+      <library type="flex">
+        <properties id="85e06ed1-0a15-4d42-8b7d-b6ac6fe0259b" />
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/libs" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/libs" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library type="flex">
+        <properties id="13dcc7e0-38e4-4b78-9d86-a17c86674f78" />
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/assets/MetalWorksMobileTheme/swc/MetalWorksMobileTheme.swc!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library type="flex">
+        <properties id="4fbed81f-a866-4bf7-87f4-e48e9bbe43bc" />
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/assets/MetalWorksMobileTheme/source" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+  </component>
+</module>
+

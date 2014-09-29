@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="158" height="120" visible="false"
+        creationComplete="init()"
+        click="onClick()" buttonMode="true">
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+
+        import events.EventTypes;
+        import events.ShowUserDetailsEvent;
+
+        import model.MainModel;
+
+        import vo.User;
+
+        private function init() : void {
+            parentApplication.addEventListener(EventTypes.END_GAME, onEndGame);
+            update();
+        }
+
+        private var _user : User;
+
+        public function get user() : User { return _user; }
+
+        public function set user(val : User) : void {
+            _user = val;
+            update();
+        }
+
+        private function onEndGame(event : Event) : void {
+            update();
+        }
+
+        private function update() : void {
+            var winChips : int = 0;
+            var winGold : Boolean = false;
+            var winSilver : Boolean = false;
+            var winBronze : Boolean = false;
+
+            if(_user) {
+                avatar.source = _user.avatarUrl;
+                lbUserName.text = _user.name;
+                winChips = _user.winChips;
+                winGold = _user.winGold;
+                winSilver = _user.winSilver;
+                winBronze = _user.winBronze;
+                this.visible = true;
+            }
+            else {
+                avatar.source = null;
+                lbUserName.text = "";
+                this.visible = false;
+            }
+
+            if(MainModel.inst.showWins) {
+                lbWin.text = Utils.formatChips(winChips);
+                sticker.visible = true;
+                main.x = 52;
+                goldMedal.includeInLayout = goldMedal.visible = winGold;
+                silverMedal.includeInLayout = silverMedal.visible = winSilver;
+                bronzeMedal.includeInLayout = bronzeMedal.visible = winBronze;
+            }
+            else {
+                lbWin.text = "";
+                sticker.visible = false;
+                main.x = (this.width - main.width)/2;
+                goldMedal.includeInLayout = goldMedal.visible = false;
+                silverMedal.includeInLayout = silverMedal.visible = false;
+                bronzeMedal.includeInLayout = bronzeMedal.visible = false;
+            }
+        }
+
+        private function onClick() : void {
+            var e : ShowUserDetailsEvent = new ShowUserDetailsEvent();
+            e.user = _user;
+            dispatchEvent(e);
+        }
+
+        ]]></fx:Script>
+
+    <s:SkinnableContainer id="sticker" y="35" width="60" height="47">
+        <s:BitmapImage width="60" height="47"
+                       source="@Embed('/assets/img/common/sticker.png')"/>
+        <s:Label id="lbWin" fontSize="13" textAlign="center" color="0x4a3c2e"
+                 left="12" right="2" top="26" height="16"/>
+    </s:SkinnableContainer>
+
+    <s:SkinnableContainer id="main" x="52" width="98" height="120">
+        <s:BitmapImage width="98" height="120"
+                       source="@Embed('/assets/img/user/avatar_room.png')"/>
+
+        <view:AvatarView id="avatar" left="14" right="13" top="16" bottom="29"/>
+
+        <s:HGroup gap="3" x="10" y="8">
+            <view:Medal id="goldMedal" type="gold"/>
+            <view:Medal id="silverMedal" type="silver"/>
+            <view:Medal id="bronzeMedal" type="bronze"/>
+        </s:HGroup>
+
+        <s:Label id="lbUserName" fontSize="15" textAlign="center" color="0x4a3c2e"
+                 left="8" right="6" bottom="9" height="16"/>
+    </s:SkinnableContainer>
+
+</s:SkinnableContainer>

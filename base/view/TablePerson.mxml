@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<s:HGroup
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark">
+
+    <fx:Script><![CDATA[
+
+        private var _numItems : int = 0;
+
+        public function get numItems() : int { return _numItems; }
+
+        public function set numItems(val : int) : void {
+            _numItems = val;
+
+            for(var i : int = 1; i < 7; i++) {
+                var item : BitmapImage = this["id" + i];
+                var itemH : BitmapImage = this["id" + i + "h"];
+                var active : Boolean = (i <= _numItems);
+                item.includeInLayout = item.visible = active;
+                itemH.includeInLayout = itemH.visible = !active;
+            }
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage id="id1h" source="@Embed('/assets/img/common/table_person_h.png')"
+                   width="13" height="13"/>
+    <s:BitmapImage id="id1" source="@Embed('/assets/img/common/table_person.png')"
+                   width="13" height="13"/>
+    <s:BitmapImage id="id2h" source="@Embed('/assets/img/common/table_person_h.png')"
+                   width="13" height="13"/>
+    <s:BitmapImage id="id2" source="@Embed('/assets/img/common/table_person.png')"
+                   width="13" height="13"/>
+    <s:BitmapImage id="id3h" source="@Embed('/assets/img/common/table_person_h.png')"
+                   width="13" height="13"/>
+    <s:BitmapImage id="id3" source="@Embed('/assets/img/common/table_person.png')"
+                   width="13" height="13"/>
+    <s:BitmapImage id="id4h" source="@Embed('/assets/img/common/table_person_h.png')"
+                   width="13" height="13"/>
+    <s:BitmapImage id="id4" source="@Embed('/assets/img/common/table_person.png')"
+                   width="13" height="13"/>
+    <s:BitmapImage id="id5h" source="@Embed('/assets/img/common/table_person_h.png')"
+                   width="13" height="13"/>
+    <s:BitmapImage id="id5" source="@Embed('/assets/img/common/table_person.png')"
+                   width="13" height="13"/>
+    <s:BitmapImage id="id6h" source="@Embed('/assets/img/common/table_person_h.png')"
+                   width="13" height="13"/>
+    <s:BitmapImage id="id6" source="@Embed('/assets/img/common/table_person.png')"
+                   width="13" height="13"/>
+</s:HGroup>

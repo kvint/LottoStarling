@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        width="390" height="282"
+        horizontalCenter="0" verticalCenter="0"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        import spark.filters.DropShadowFilter;
+
+        public var closeCallback : Function = null;
+
+        private function init() : void {
+            lbTitle.text = _title;
+            taMsg.text = _msg;
+            btnOk.label = _okLabel;
+            btnCancel.label = _cancelLabel;
+
+            var dsf : DropShadowFilter = new DropShadowFilter(15, 60, 0, .5);
+            this.filters = [dsf];
+        }
+
+        public var _title : String = "Confirm";
+
+        public function get title() : String { return _title; }
+
+        public function set title(txt : String) : void {
+            _title = txt;
+            if(lbTitle) lbTitle.text = txt;
+        }
+
+        public var _msg : String = "Message";
+
+        public function get msg() : String { return _msg; }
+
+        public function set msg(txt : String) : void {
+            _msg = txt;
+            if(taMsg) taMsg.text = txt;
+        }
+
+        public var _okLabel : String = "OK";
+
+        public function get okLabel() : String { return _okLabel; }
+
+        public function set okLabel(txt : String) : void {
+            _okLabel = txt;
+            if(btnOk) btnOk.label = txt;
+        }
+
+        public var _cancelLabel : String = "Cancel";
+
+        public function get cancelLabel() : String { return _cancelLabel; }
+
+        public function set cancelLabel(txt : String) : void {
+            _cancelLabel = txt;
+            if(btnCancel) btnCancel.label = txt;
+        }
+
+        private function close(confirm : Boolean) : void {
+            if(closeCallback != null) closeCallback(this, confirm);
+            else this.visible = false;
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/common/popup_bg.png')"
+                   y="0" width="390" height="282"/>
+
+    <s:Label id="lbTitle" y="40" horizontalCenter="0"
+             color="0x4a3c2e" fontSize="28"/>
+
+    <s:TextArea id="taMsg" color="0x4a3c2e" fontSize="22"
+                contentBackgroundAlpha="0" borderVisible="false"
+                textAlign="center" verticalAlign="middle"
+                y="70" left="20" right="20" height="110"
+                editable="false"/>
+
+    <s:HGroup bottom="20" gap="20" horizontalCenter="0">
+        <s:Button id="btnOk" label="OK" click="close(true)"
+                  skinClass="view.skin.ButtonSkin"/>
+        <s:Button id="btnCancel" label="Отмена" click="close(false)"
+                  skinClass="view.skin.ButtonSkin"/>
+    </s:HGroup>
+
+</s:SkinnableContainer>

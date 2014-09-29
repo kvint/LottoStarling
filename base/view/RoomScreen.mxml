@@ -1,0 +1,170 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="760" height="700"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+        import events.EventTypes;
+        import events.PTableEvent;
+        import model.MainModel;
+        import vo.Room;
+        import vo.User;
+
+        private var _userViews : Array = [];
+        private var _model : MainModel = MainModel.inst;
+
+        private function init() : void {
+            _userViews = [u1, u2, u3, u4, u5, u6];
+            parentApplication.addEventListener(EventTypes.ON_JOIN_ROOM, onJoinRoom);
+            parentApplication.addEventListener(EventTypes.UPDATE_USERS, updateUsers);
+            parentApplication.addEventListener(EventTypes.LEAVE_ROOM, onLeaveRoom);
+            parentApplication.addEventListener(EventTypes.ON_LOGIN, updateChipsAndGold);
+            parentApplication.addEventListener(EventTypes.CHIPS_CHANGED, updateChipsAndGold);
+            parentApplication.addEventListener(EventTypes.END_GAME, onEndGame);
+
+            //initWithTempData();
+        }
+
+        private function updateChipsAndGold(event : Event = null) : void {
+            lbChips.text = Utils.formatChips(_model.user.chips);
+            lbGold.text = Utils.formatChips(_model.user.gold);
+        }
+
+        private function initWithTempData() : void {
+            _model.showWins = true;
+            var winChips : Array = [5000, 25000, -25000, 125000, -125000, 15000000];
+            for(var i : String in _userViews) {
+                var userView : UserViewRoom = _userViews[i];
+                var user : User = new User;
+                user.id = "user" + i;
+                user.name = "User " + i;
+                user.winChips = winChips[i];
+                user.avatarUrl = "http://cs416326.vk.me/v416326353/202f/NLCjpgRV-bQ.jpg";
+                userView.user = user;
+            }
+        }
+
+        private function onJoinRoom(event : Event = null) : void {
+            var room : Room = _model.currRoom;
+            lbBet.text = Utils.formatChips(room.bet);
+            if(room.waitingTimeout > 0) {
+                countdown.start(room.waitingTimeout);
+                countdown.visible = true;
+            }
+            else countdown.visible = false;
+
+            if(_model.currTable != null) {
+                btnTable.label = "Начать игру";
+                btnTable.visible = _model.currTable.ownerId == _model.user.id;
+                lbWaiting.visible = !btnTable.visible;
+            }
+            else {
+                btnTable.label = "Другой стол";
+                lbWaiting.visible = false;
+            }
+        }
+
+        private function updateUsers(event : Event = null) : void {
+            var users : Array = _model.currRoom.users;
+            for(var i : String in _userViews) {
+                var userView : UserViewRoom = _userViews[i];
+                var user : User = users[i];
+                userView.user = user;
+            }
+        }
+
+        private function clickBtnTable() : void {
+            if(_model.currTable != null) {
+                dispatchEvent(new PTableEvent(PTableEvent.START_GAME));
+            }
+            else changeRoom();
+        }
+
+        private function changeRoom() : void {
+            countdown.stop();
+            var event : Event = new Event(EventTypes.CHANGE_ROOM, true);
+            dispatchEvent(event);
+            onLeaveRoom();
+        }
+
+        private function leaveRoom() : void {
+            countdown.stop();
+            var event : Event = new Event(EventTypes.LEAVE_ROOM, true);
+            dispatchEvent(event);
+        }
+
+        private function onLeaveRoom(event : Event = null) : void {
+            for each(var userView : UserViewRoom in _userViews) {
+                userView.user = null;
+            }
+        }
+
+        private function onEndGame(e : Event = null) : void {
+            btnTable.enabled = false;
+            setTimeout(function () : void {
+                btnTable.enabled = true;
+            }, 6000);
+
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/room_bg.jpg')"
+                   width="760" height="700"/>
+
+    <s:Label id="lbBet" text="5000" textAlign="center"
+             x="292" y="38" width="179"
+             fontSize="30" color="0xdd0000"/>
+
+    <view:Countdown id="countdown" y="10" right="11"/>
+
+    <s:VGroup gap="20" horizontalCenter="0" y="98">
+        <s:HGroup gap="15">
+            <view:UserViewRoom id="u1"/>
+            <view:UserViewRoom id="u2"/>
+            <view:UserViewRoom id="u3"/>
+        </s:HGroup>
+        <s:HGroup gap="15">
+            <view:UserViewRoom id="u4"/>
+            <view:UserViewRoom id="u5"/>
+            <view:UserViewRoom id="u6"/>
+        </s:HGroup>
+    </s:VGroup>
+
+    <s:Button x="10" y="0" width="118" height="27"
+              label="Выйти" click="leaveRoom()"
+              skinClass="view.skin.BackWoodButton"/>
+
+    <s:Label id="lbWaiting" text="Ждем начала игры..."
+             color="0x4a3c2e" fontSize="17"
+             textAlign="center"
+             x="310" y="396" width="180"/>
+
+    <s:HGroup x="100" y="447" width="560" verticalAlign="middle" gap="20">
+
+        <s:HGroup verticalAlign="middle">
+            <s:BitmapImage source="@Embed('/assets/img/common/chips_coin.png')"
+                           width="30" height="30"/>
+            <s:Label id="lbChips" text="500" fontSize="18" color="0xffffff"/>
+        </s:HGroup>
+
+        <s:HGroup verticalAlign="middle">
+            <s:BitmapImage source="@Embed('/assets/img/common/gold_coin.png')"
+                           width="30" height="30"/>
+            <s:Label id="lbGold" text="105K" fontSize="18" color="0xffffff"/>
+        </s:HGroup>
+
+        <view:InviteUserSmall id="inviteUser" />
+
+        <s:Group height="1" width="100%"/>
+
+        <s:Button id="btnTable" width="180" height="33"
+                  label="Другой стол" click="clickBtnTable()"
+                  skinClass="view.skin.ChangeRoomButton"/>
+    </s:HGroup>
+
+</s:SkinnableContainer>

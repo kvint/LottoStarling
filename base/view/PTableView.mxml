@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<s:ItemRenderer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        rollOverColor="0xf8d9af"
+        click="join()">
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+        import events.PTableEvent;
+        import vo.PTable;
+
+        private var _table : PTable;
+
+        override public function set data(value : Object) : void {
+            super.data = value;
+            if(value == null) return;
+
+            _table = value as PTable;
+
+            userView.user = _table.owner;
+            lbBet.text = Utils.formatChips(_table.bet);
+            quick.includeInLayout = quick.visible = _table.isQuick;
+            pro.includeInLayout = pro.visible = _table.isPro;
+            tablePerson.numItems = _table.userIds.length;
+        }
+
+        private function join() : void {
+            var event : PTableEvent = new PTableEvent(PTableEvent.JOIN);
+            event.table = _table;
+            dispatchEvent(event);
+        }
+
+        ]]></fx:Script>
+
+    <s:states>
+        <s:State name="normal" />
+        <s:State name="hovered" />
+        <s:State name="selected" />
+    </s:states>
+
+    <s:BorderContainer width="255" height="124"
+                       borderColor="0x333333" borderAlpha="0.3"
+                       backgroundColor="0xcccccc" backgroundAlpha="0.3">
+        <view:UserViewTable x="5" y="2" id="userView"/>
+        <s:VGroup x="115" y="15">
+            <s:Group>
+                <s:BitmapImage source="@Embed('/assets/img/common/chips_coin.png')"
+                               width="30" height="30"/>
+                <s:Label id="lbBet" x="34" y="7" fontSize="22"/>
+            </s:Group>
+            <s:HGroup gap="10">
+                <s:Group id="quick" toolTip="Короткая игра">
+                    <s:BitmapImage source="@Embed('/assets/img/common/quick.png')"
+                                   width="32" height="32" />
+                </s:Group>
+                <s:Group id="pro" toolTip="Перемешаные карточки">
+                    <s:BitmapImage source="@Embed('/assets/img/common/tricky.png')"
+                                   width="32" height="32"/>
+                </s:Group>
+            </s:HGroup>
+            <view:TablePerson id="tablePerson"/>
+        </s:VGroup>
+    </s:BorderContainer>
+
+</s:ItemRenderer>

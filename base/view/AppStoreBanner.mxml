@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<s:Group
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+
+        private function init() : void {
+            var p:AppStoreClip = new AppStoreClip();
+            p.ipad_btn.addEventListener(MouseEvent.CLICK, appStoreClick_iPad);
+            p.iphone_btn.addEventListener(MouseEvent.CLICK, appStoreClick_iPhone);
+            p.store_btn.addEventListener(MouseEvent.CLICK, appStoreClick_iPhone);
+            container.addChild(p);
+        }
+
+        public function appStoreClick_iPad(e:MouseEvent = null):void {
+            var url:String = "http://bit.ly/lotohd_vk";// http://bit.ly/lotohd_diesel";
+            navigateToURL(new URLRequest(url));
+        }
+
+        public function appStoreClick_iPhone(e:MouseEvent = null):void {
+            var url:String = "http://bit.ly/loto_vk";//http://bit.ly/loto_diesel";
+            navigateToURL(new URLRequest(url));
+        }
+
+        ]]></fx:Script>
+
+    <s:SpriteVisualElement id="container" width="244" height="40"/>
+
+</s:Group>

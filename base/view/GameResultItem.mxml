@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        initialize="init()">
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+
+        import events.EventTypes;
+        import model.MainModel;
+        import vo.User;
+
+        private var _model : MainModel = MainModel.inst;
+
+        public var type : String = "";
+
+        private function init() : void {
+            parentApplication.addEventListener(EventTypes.END_GAME, onEndGame);
+        }
+
+        private function onEndGame(event : Event) : void {
+            var showUser : User = null;
+            for each(var user : User in _model.currRoom.users) {
+                if(type == "gold") {
+                    if(user.winGold) showUser = user;
+                }
+                if(type == "silver") {
+                    if(user.winSilver && !user.winGold) showUser = user;
+                }
+                if(type == "bronze") {
+                    if(user.winBronze && !user.winSilver && !user.winGold) showUser = user;
+                }
+            }
+
+            if(showUser == null) {
+                this.visible = false;
+                this.includeInLayout = false;
+                return;
+            }
+
+            this.visible = true;
+            this.includeInLayout = true;
+
+            goldMedal.visible = showUser.winGold;
+            silverMedal.visible = showUser.winSilver;
+            bronzeMedal.visible = showUser.winBronze;
+
+            lbName.text = showUser.name;
+            lbChips.text = Utils.formatChips(showUser.winChips);
+        }
+
+        ]]></fx:Script>
+
+    <s:HGroup gap="20">
+        <s:HGroup gap="3" verticalCenter="0">
+            <view:Medal id="goldMedal" type="gold"/>
+            <view:Medal id="silverMedal" type="silver"/>
+            <view:Medal id="bronzeMedal" type="bronze"/>
+        </s:HGroup>
+        <s:Label id="lbName" fontSize="30"/>
+        <s:Label id="lbChips" fontSize="30" color="0x0000ff"/>
+    </s:HGroup>
+
+</s:SkinnableContainer>

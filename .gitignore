@@ -7,7 +7,7 @@ Desktop.ini
 
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
-
+ART/
 # Windows Installer files
 *.cab
 *.msi
@@ -26,7 +26,8 @@ $RECYCLE.BIN/
 .LSOverride
 
 # Icon must ends with two \r.
-Icon
+Icon
+
 
 # Thumbnails
 ._*

@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<s:VGroup
+        xmlns:fx="http://ns.adobe.com/mxml/2009" 
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        width="120"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        import controller.SoundManager;
+
+        private var _so : SharedObject = SharedObject.getLocal("settings");
+        private var _sound : SoundManager = SoundManager.inst;
+
+        private function init() : void {
+            if(_so.data.music == undefined) _so.data.music = true;
+            if(_so.data.sound == undefined) _so.data.sound = true;
+
+            music.selected = _so.data.music;
+            sound.selected = _so.data.sound;
+
+            _sound.musicOn = music.selected;
+            _sound.soundOn = sound.selected;
+
+            updateLabels();
+        }
+
+        private function switchMusic() : void {
+            _sound.musicOn = music.selected;
+            if(music.selected) _sound.playLobby();
+            else _sound.stopLobby();
+
+            _so.data.music = music.selected;
+            _so.flush();
+
+            updateLabels();
+        }
+
+        private function switchSound() : void {
+            _sound.soundOn = sound.selected;
+
+            _so.data.sound = sound.selected;
+            _so.flush();
+
+            updateLabels();
+        }
+
+        private function updateLabels() : void {
+            music.label = music.selected ? "Музыка включена" : "Музыка выключена";
+            sound.label = sound.selected ? "Звуки включены" : "Звуки выключены";
+        }
+
+        ]]></fx:Script>
+
+    <s:CheckBox id="music" color="0xffffff" click="switchMusic()"/>
+    <s:CheckBox id="sound" color="0xffffff" click="switchSound()"/>
+    
+</s:VGroup>

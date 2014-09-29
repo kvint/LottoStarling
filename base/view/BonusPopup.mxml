@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        width="390" height="282"
+        horizontalCenter="0" verticalCenter="0"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        import mailru.MailruCall;
+
+        import model.MainModel;
+
+        import spark.filters.DropShadowFilter;
+
+        public var closeCallback : Function = null;
+
+        private function init() : void {
+            var dsf : DropShadowFilter = new DropShadowFilter(15, 60, 0, .5);
+            this.filters = [dsf];
+            update();
+        }
+
+        private var _bonus : int = 100;
+
+        public function get bonus() : int { return bonus; }
+
+        public function set bonus(val : int) : void {
+            _bonus = val;
+            update();
+        }
+
+        private function update() : void {
+            if(!lbBonus) return;
+            var numFriends : int = Math.floor(_bonus / 100) - 1;
+            lbBonus.text = numFriends + " * 100 + 100 = " + _bonus;
+        }
+
+        private function close() : void {
+            if(closeCallback != null) closeCallback(this);
+            else this.visible = false;
+        }
+
+        private function inviteFriend() : void {
+            if(MainModel.IS_OK){
+                MainModel.OK.invite();
+            }
+            else if(MainModel.IS_MM){
+                MainModel.MM.invite();
+
+            }
+            else MainModel.VK.callMethod("showInviteBox");
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/common/popup_bg.png')"
+                   y="0" width="390" height="282"/>
+
+    <s:VGroup y="25" horizontalCenter="0" horizontalAlign="center" gap="4">
+        <s:Label text="Чем больше друзей в игре,"
+                 color="0x4a3c2e" fontSize="18"/>
+        <s:Label text="тем больше бонус!"
+                 color="0x4a3c2e" fontSize="18"/>
+        <s:Rect height="10"/>
+        <s:Label text="Ваш бонус:"
+                 color="0x4a3c2e" fontSize="22"/>
+        <s:Rect height="12"/>
+        <s:Label id="lbBonus" text="100"
+                 color="0xa803a6" fontSize="30"/>
+        <s:Rect height="12"/>
+        <s:Label text="За каждого друга 100 фишек, максимум 2000."
+                 color="0x4a3c2e" fontSize="12"/>
+    </s:VGroup>
+
+    <s:HGroup bottom="20" gap="20" horizontalCenter="0">
+        <s:Button id="btnOk" label="Закрыть" click="close()"
+                  skinClass="view.skin.ButtonSkin"/>
+        <s:Button id="btnCancel" label="Пригласить друга" click="inviteFriend()"
+                  skinClass="view.skin.ButtonSkin"/>
+    </s:HGroup>
+
+</s:SkinnableContainer>

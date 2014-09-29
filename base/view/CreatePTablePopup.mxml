@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="390" height="282"
+        horizontalCenter="0" verticalCenter="0"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+
+        import events.EventTypes;
+        import events.PTableEvent;
+
+        import model.MainModel;
+
+        import spark.filters.DropShadowFilter;
+        import vo.PTable;
+
+        private var _bet : int = 1;
+        private var _bets : Array = [100, 250, 500, 1000, 5000, 10000, 25000, 50000];
+
+        private function init() : void {
+            var dsf : DropShadowFilter = new DropShadowFilter(15, 60, 0, .5);
+            this.filters = [dsf];
+
+            _bets = MainModel.inst.settings.pTableBets;
+
+            updateBet();
+        }
+
+        private function create() : void {
+            if(_bets[_bet] > MainModel.inst.user.chips) {
+                close();
+
+                var popup : InfoPopup = new InfoPopup();
+                popup.title = "Не хватает фишек";
+                popup.msg = "Пополните счет, или подожите до завтра — вы получите бонус.";
+                popup.closeCallback = function(popup : InfoPopup) : void {
+                    parentApplication.removeElement(popup);
+                    parentApplication.dispatchEvent(new Event(EventTypes.SHOW_SHOP, true));
+                }
+
+                parentApplication.addElement(popup);
+                return;
+            }
+
+            var table : PTable = new PTable;
+            table.bet = _bets[_bet];
+            table.isPro = cbPro.selected;
+            table.isQuick = cbQuick.selected;
+            table.password = "";
+
+            var e : PTableEvent = new PTableEvent(PTableEvent.CREATE);
+            e.table = table;
+            dispatchEvent(e);
+
+            close();
+        }
+
+        private function incBet() : void {
+            _bet++;
+            if(_bet >= _bets.length) _bet = _bets.length - 1;
+            updateBet();
+        }
+
+        private function decBet() : void {
+            _bet--;
+            if(_bet < 0) _bet = 0;
+            updateBet();
+        }
+
+        private function updateBet() : void {
+            lbBet.text = Utils.formatNum(_bets[_bet]);
+        }
+
+        private function close() : void {
+            this.visible = false;
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/common/popup_bg.png')"
+                   y="0" width="390" height="282"/>
+
+    <s:VGroup y="20" horizontalCenter="0" gap="20">
+
+        <s:Label text="Создание стола" width="270" textAlign="center"
+                 fontSize="25" color="0x4a3c2e"/>
+
+        <s:HGroup verticalAlign="middle" gap="10">
+            <s:Label text="Ставка:" width="60"
+                     fontSize="16" color="0x4a3c2e"/>
+            <s:BorderContainer cornerRadius="4" width="200"
+                    borderColor="0x333333" borderAlpha="0.3"
+                    backgroundColor="0xf4b968" backgroundAlpha="0.3">
+                <s:Button skinClass="view.skin.MinusButton" left="0" click="decBet()"/>
+                <s:Group horizontalCenter="0">
+                    <s:BitmapImage source="@Embed('/assets/img/common/chips_coin.png')"
+                                   width="30" height="30"/>
+                    <s:Label id="lbBet" x="34" y="7" text="200" fontSize="22"/>
+                </s:Group>
+                <s:Button skinClass="view.skin.PlusButton" right="0" click="incBet()"/>
+            </s:BorderContainer>
+        </s:HGroup>
+
+        <s:CheckBox id="cbQuick" label="Быстрая игра (36 бочонков)" fontSize="16" color="0x4a3c2e"/>
+        <s:CheckBox id="cbPro" label="Запутанный режим" fontSize="16" color="0x4a3c2e"/>
+
+    </s:VGroup>
+
+    <s:HGroup bottom="20" gap="20" horizontalCenter="0">
+        <s:Button id="btnOk" label="Создать" click="create()"
+                  skinClass="view.skin.ButtonSkin"/>
+        <s:Button id="btnCancel" label="Отмена" click="close()"
+                  skinClass="view.skin.ButtonSkin"/>
+    </s:HGroup>
+
+</s:SkinnableContainer>

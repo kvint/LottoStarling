@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        width="38" height="38"
+        click="onClick()">
+
+    <fx:Script><![CDATA[
+        import events.EventTypes;
+
+        private var _val : int;
+
+        public function get val() : int { return _val; }
+
+        public function set val(v : int) : void {
+            _val = v;
+            if(_val) {
+                lb.text = "" + v;
+                currentState = "active";
+            }
+            else clear();
+        }
+
+        public function get active() : Boolean {
+            return currentState == "active" || currentState == "highlighted";
+        }
+        public function get missed() : Boolean { return currentState == "missed"; }
+        public function get closed() : Boolean { return currentState == "closed"; }
+
+        public function miss() : void { currentState = "missed"; }
+        public function close() : void { currentState = "closed"; }
+        public function highlight() : void { currentState = "highlighted"; }
+        public function clear() : void { currentState = "empty"; }
+
+        private function onClick() : void {
+            dispatchEvent(new Event(EventTypes.CLICK_CARD_CELL, true));
+        }
+
+        ]]></fx:Script>
+
+    <s:states>
+        <s:State name="empty"/>
+        <s:State name="active"/>
+        <s:State name="highlighted"/>
+        <s:State name="closed"/>
+        <s:State name="missed"/>
+    </s:states>
+
+    <s:Line xFrom="0" xTo="38" yFrom="0" yTo="0">
+        <s:stroke>
+            <s:SolidColorStroke color="0xbaab98" weight="1"/>
+        </s:stroke>
+    </s:Line>
+    <s:Line xFrom="0" xTo="0" yFrom="0" yTo="38">
+        <s:stroke>
+            <s:SolidColorStroke color="0xbaab98" weight="1"/>
+        </s:stroke>
+    </s:Line>
+
+    <s:BitmapImage source="@Embed('/assets/img/card/card_cell_hl.png')"
+                   width="38" height="38" visible="false" visible.highlighted="true"/>
+    <s:BitmapImage source="@Embed('/assets/img/card/card_cell_closed.png')"
+                   width="38" height="38" visible="false" visible.closed="true"/>
+    <s:BitmapImage source="@Embed('/assets/img/card/card_cell_missed.png')"
+                   width="38" height="38" visible="false" visible.missed="true"/>
+
+    <s:Label id="lb" fontSize="19" textAlign="center" color="0x643a0d"
+             visible="true" visible.empty="false"
+             x="4" y="11.5" width="30"/>
+
+</s:SkinnableContainer>

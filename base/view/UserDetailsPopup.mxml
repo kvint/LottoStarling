@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="390" height="282"
+        horizontalCenter="0" verticalCenter="0"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        import as2bert.As2Bert;
+
+        import common.Utils;
+
+        import dssocket.DSBertSocket;
+        import dssocket.DSReply;
+
+        import events.ShowUserDetailsEvent;
+
+        import model.MainModel;
+
+        import spark.filters.DropShadowFilter;
+
+        import vo.User;
+        import vo.UserStat;
+
+        private var _user:User = null;
+        public function get user():User {
+            return _user;
+        }
+
+        public function set user(val:User):void {
+            _user = val;
+            update();
+        }
+
+        private var _stat:UserStat = null;
+        public function get stat():UserStat {
+            return _stat;
+        }
+
+        public function set stat(val:UserStat):void {
+            _stat = val;
+            update();
+        }
+
+        private function init():void {
+            parentApplication.addEventListener(ShowUserDetailsEvent.SHOW, showUser);
+
+            var dsf:DropShadowFilter = new DropShadowFilter(15, 60, 0, .5);
+            this.filters = [dsf];
+
+            update();
+        }
+
+        private function showUser(e:ShowUserDetailsEvent):void {
+            _user = e.user;
+            _stat = null;
+            update();
+            this.visible = true;
+
+            DSBertSocket.instance.call("user_stat", As2Bert.encBStr(_user.id),
+                    function (reply:DSReply):void {
+                        if (reply.success) {
+                            _stat = new UserStat();
+                            _stat.decode(reply.payload);
+                            update();
+                        }
+                    });
+        }
+
+        private function update():void {
+            if (_user == null) {
+                avatar.source = null;
+                return;
+            }
+
+            lbName.text = _user.name;
+            avatar.source = _user.avatarUrl;
+            lbLevel.text = "" + _user.level;
+
+            userType.setType(_user.type);
+            btnProfile.visible = ((_user.type == User.VKONTAKTE || _user.type == User.ODNOKLASSNIKI) && MainModel.IS_MM == false);
+
+            if (_stat != null) {
+                lbGames.text = Utils.formatNum(_stat.totalGames);
+                lbWins.text = Utils.formatNum(_stat.wins);
+            }
+            else {
+                lbGames.text = "-";
+                lbWins.text = "-";
+            }
+            lbChips.text = Utils.formatChips(_user.chips);
+        }
+
+        private function showProfile():void {
+            var url:String = "";
+
+            if (_user.type == User.VKONTAKTE) {
+                url = "https://vk.com/id";
+                if (_user.id.indexOf("vk") == 0) url += _user.id.substr(2);
+                else url += _user.id;
+            }
+            if (_user.type == User.ODNOKLASSNIKI) {
+                url = "http://www.odnoklassniki.ru/profile/" + _user.id;
+            }
+            if (_user.type == User.MM) {
+                //url = "http://www.odnoklassniki.ru/profile/" + _user.id;
+            }
+            if (url) navigateToURL(new URLRequest(url), "_blank");
+
+        }
+
+        private function close():void {
+            this.visible = false;
+        }
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/common/popup_bg.png')"
+                   y="0" width="390" height="282"/>
+
+    <s:Group x="20" y="20" width="100" height="100">
+        <s:BitmapImage source="@Embed('/assets/img/user/avatar_bg.png')"
+                       width="100" height="100"/>
+        <view:AvatarView id="avatar" left="2" right="2" top="2" bottom="2"/>
+        <s:SkinnableContainer width="20" height="20" left="5" bottom="5"
+                              backgroundColor="0" backgroundAlpha="0.5">
+            <s:Label id="lbLevel" y="4" width="20"
+                     textAlign="center" fontSize="14" color="0xffffff"/>
+        </s:SkinnableContainer>
+    </s:Group>
+
+    <s:Button id="btnProfile" label="Профиль"
+              x="20" y="130" width="100"
+              click="showProfile()"
+              skinClass="view.skin.LinkButton"/>
+
+    <view:UserTypeIcon x="130" y="20" id="userType"/>
+
+    <s:VGroup x="168" y="27" gap="25">
+        <s:Label id="lbName" fontSize="21" color="0x4a3c2e"
+                 width="215" height="23"/>
+
+        <s:HGroup>
+            <s:VGroup gap="10">
+                <s:Label text="Всего игр:" fontSize="16" color="0x4a3c2e"/>
+                <s:Label text="Побед:" fontSize="16" color="0x4a3c2e"/>
+            </s:VGroup>
+            <s:VGroup gap="10">
+                <s:Label id="lbGames" fontSize="16" color="0x4a3c2e"/>
+                <s:Label id="lbWins" fontSize="16" color="0x4a3c2e"/>
+            </s:VGroup>
+        </s:HGroup>
+
+        <s:Group>
+            <s:BitmapImage source="@Embed('/assets/img/common/chips_coin.png')" width="30" height="30"/>
+            <s:Label id="lbChips" x="35" y="6" fontSize="20" color="0x4a3c2e"/>
+        </s:Group>
+
+    </s:VGroup>
+
+    <s:Button id="btnOk" label="Закрыть" click="close()"
+              bottom="0"
+              skinClass="view.skin.PopupButton"/>
+
+</s:SkinnableContainer>

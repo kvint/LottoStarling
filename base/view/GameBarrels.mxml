@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        creationComplete="init()"
+        width="326" height="76">
+
+    <fx:Script><![CDATA[
+        import events.NewBarrelEvent;
+
+        private var _barrelViews : Array = [];
+
+        private function init() : void {
+            _barrelViews = [b1, b2, b3, b4, b5];
+            parentApplication.addEventListener(NewBarrelEvent.NEW_BARREL, onNewBarrel);
+            //test();
+        }
+
+        public function onNewBarrel(event : NewBarrelEvent) : void {
+            for(var i : int = _barrelViews.length - 1; i > 0; i--) {
+                var curr : BarrelView = _barrelViews[i];
+                var prev : BarrelView = _barrelViews[i - 1];
+                curr.val = prev.val;
+            }
+            var first : BarrelView = _barrelViews[0];
+            first.val = event.barrel;
+        }
+
+        public function clear() : void {
+            for each(var barrelView : BarrelView in _barrelViews) barrelView.clear();
+        }
+
+        private function test() : void {
+            b1.val = 1;
+            b2.val = 8;
+            b3.val = 2;
+            b4.val = 7;
+            b5.val = 1;
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/common/barrels_back.png')"
+                   width="326" height="76"/>
+
+    <s:HGroup gap="0" x="7" y="3">
+        <view:BarrelView id="b1" big="true"/>
+        <view:BarrelView id="b2"/>
+        <view:BarrelView id="b3"/>
+        <view:BarrelView id="b4"/>
+        <view:BarrelView id="b5"/>
+    </s:HGroup>
+
+</s:SkinnableContainer>

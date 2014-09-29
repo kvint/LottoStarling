@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        width="72" height="72" visible="false"
+        creationComplete="update()">
+
+    <fx:Script><![CDATA[
+
+        private var _val : int = 0;
+
+        public function get val() : int { return _val; }
+
+        public function set val(v : int) : void {
+            _val = v;
+            if(_val) lb.text = "" + v;
+            else lb.text = "";
+
+            this.visible = _val != 0;
+
+            lb.x = _big ? 20 : 17;
+            if(_val == 1) lb.x += _big ? 8 : 7;
+            else if(_val < 10) lb.x += _big ? 9 : 7;
+            else if(_val == 11) {}
+            else if(_val < 20) lb.x -= 1;
+        }
+
+        public function clear() : void {
+            _val = 0;
+            lb.text = "";
+            this.visible = false;
+        }
+
+        private var _big : Boolean = false;
+
+        public function get big() : Boolean { return _big; }
+
+        public function set big(val : Boolean) : void {
+            _big = val;
+            if(bgBig) update();
+        }
+
+        private function update() : void {
+            bgBig.visible = _big;
+            bg.visible = !_big;
+            this.width = _big ? (bgBig.width + 2) : bg.width;
+            lb.setStyle("fontSize", _big ? 30 : 24);
+            lb.y = _big ? 24 : 25;
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage id="bgBig" source="@Embed('/assets/img/common/barrel_big.png')"
+                   width="72" height="72"/>
+    <s:BitmapImage id="bg" source="@Embed('/assets/img/common/barrel_small.png')"
+                   y="6" width="60" height="60"/>
+
+    <s:Label id="lb" textAlign="center" color="0x643a0d"/>
+
+</s:SkinnableContainer>

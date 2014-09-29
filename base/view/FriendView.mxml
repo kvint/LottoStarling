@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<s:ItemRenderer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        autoDrawBackground="false"
+        width="86" height="130"
+        click="onClick()">
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+
+        import events.ShowUserDetailsEvent;
+
+        import vo.User;
+
+        private var _user : User;
+
+        override public function set data(value : Object) : void {
+            super.data = value;
+
+            _user = value as User;
+
+            if(_user) {
+                avatar.source = _user.avatarUrl;
+                lbUserName.text = _user.name;
+                lbLevel.text = _user.level.toString();
+                lbChips.text = Utils.formatChips(_user.chips)
+            }
+            else {
+                avatar.source = null;
+                lbUserName.text = "";
+                lbLevel.text = "";
+                lbChips.text = "";
+            }
+        }
+
+        private function onClick() : void {
+            var e : ShowUserDetailsEvent = new ShowUserDetailsEvent();
+            e.user = _user;
+            dispatchEvent(e);
+        }
+
+        ]]></fx:Script>
+
+    <s:states>
+        <s:State name="normal" />
+        <s:State name="hovered" />
+        <s:State name="selected" />
+    </s:states>
+
+    <s:BitmapImage width="86" height="108"
+                   source="@Embed('/assets/img/user/avatar_game.png')"/>
+
+    <view:AvatarView id="avatar" x="8" y="8" width="70" height="73"/>
+    <s:SkinnableContainer x="10" y="61" width="22" height="18"
+                          backgroundColor="0" backgroundAlpha="0.5">
+        <s:Label id="lbLevel" y="5" width="22"
+                 textAlign="center" fontSize="12" color="0xffffff"/>
+    </s:SkinnableContainer>
+
+    <s:Label id="lbUserName" fontSize="15" textAlign="center" color="0x4a3c2e"
+             x="2" y="88" width="82" height="17"/>
+
+    <s:Group y="106" horizontalCenter="0">
+        <s:BitmapImage source="@Embed('/assets/img/common/chips_coin.png')" width="30" height="30"/>
+        <s:Label id="lbChips" x="33" y="8" fontSize="14" color="0xffffff"/>
+    </s:Group>
+
+</s:ItemRenderer>

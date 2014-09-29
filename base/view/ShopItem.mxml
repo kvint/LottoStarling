@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        width="290" height="62"
+        initialize="init()">
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+
+        import events.PurchaseEvent;
+
+        import model.MainModel;
+
+        import vo.ShopItem;
+
+        public var type : String = "chips";
+
+        private function init() : void {
+            btnGold.visible = (type == "gold");
+            btnRed.visible = (type == "red");
+            btnGreen.visible = (type == "green");
+            btnBlue.visible = (type == "blue");
+        }
+
+        private var _item : vo.ShopItem;
+
+        public function get item() : vo.ShopItem { return _item; }
+
+        public function set item(val : vo.ShopItem) : void {
+            _item = val;
+            var label : String = Utils.formatNum(item.num) + " за " + item.price;
+            if(MainModel.IS_OK) label += " ок";
+            else if(MainModel.IS_MM)
+            {
+                var str : String = "мэйлик";
+                if(item.price >= 10 && item.price < 20) str = "мэйликов";
+                else {
+                    var n : int = item.price % 10;
+                    if(n == 1) str = "мэйлик";
+                    if(n > 1 && n < 5) str = "мэйлика";
+                    else str = "мэйликов";
+                }
+                label += " " + str;
+            }
+            else {
+                var str : String = "голос";
+                if(item.price >= 10 && item.price < 20) str = "голосов";
+                else {
+                    var n : int = item.price % 10;
+                    if(n == 1) str = "голос";
+                    if(n > 1 && n < 5) str = "голоса";
+                    else str = "голосов";
+                }
+                label += " " + str;
+            }
+            btnGold.label = label;
+            btnRed.label = label;
+            btnGreen.label = label;
+            btnBlue.label = label;
+        }
+
+        private function onClick() : void {
+            var event : PurchaseEvent = new PurchaseEvent();
+            event.itemId = id;
+            event.itemType = type;
+            event.amount = _item.num;
+            event.price = _item.price;
+            dispatchEvent(event);
+        }
+
+        ]]></fx:Script>
+
+
+    <s:Button id="btnGold" click="onClick()" skinClass="view.skin.ShopGoldButton"/>
+    <s:Button id="btnRed" click="onClick()" skinClass="view.skin.ShopRedButton"/>
+    <s:Button id="btnGreen" click="onClick()" skinClass="view.skin.ShopGreenButton"/>
+    <s:Button id="btnBlue" click="onClick()" skinClass="view.skin.ShopBlueButton"/>
+
+</s:SkinnableContainer>

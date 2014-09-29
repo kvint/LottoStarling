@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:view="view.*"
+        width="86" height="108" visible="false"
+        creationComplete="clearMedals()"
+        click="onClick()" buttonMode="true">
+
+    <fx:Script><![CDATA[
+        import events.MedalEvent;
+        import events.ShowUserDetailsEvent;
+
+        import vo.User;
+
+        private var _user : User;
+
+        public function get user() : User { return _user; }
+
+        public function set user(val : User) : void {
+            _user = val;
+            if(_user != null) {
+                avatar.source = _user.avatarUrl;
+                lbUserName.text = _user.name;
+                this.visible = true;
+            }
+            else this.visible = false;
+        }
+
+        public function showsUser(userId : String) : Boolean {
+            if(user == null) return false;
+            return user.id == userId;
+        }
+
+        public function setBarrelLeft(number : int) : void {
+            barrelLeftBg.visible = true;
+            lbBarrelLeft.text = "" + number;
+            if(number < 10) lbBarrelLeft.x = 9;
+            else if(number == 11) lbBarrelLeft.x = 5;
+            else if(number < 20) lbBarrelLeft.x = 4;
+            else lbBarrelLeft.x = 5;
+        }
+
+        public function clearBarrelLeft() : void {
+            barrelLeftBg.visible = false;
+        }
+
+        public function showMedal(event : MedalEvent) : void {
+            clearBarrelLeft();
+            if(event.type == MedalEvent.GOLD_MEDAL) {
+                goldMedal.visible = true;
+                goldMedal.includeInLayout = true;
+            }
+            else if(event.type == MedalEvent.SILVER_MEDAL) {
+                silverMedal.visible = true;
+                silverMedal.includeInLayout = true;
+            }
+            else if(event.type == MedalEvent.BRONZE_MEDAL) {
+                bronzeMedal.visible = true;
+                bronzeMedal.includeInLayout = true;
+            }
+        }
+
+        public function clearMedals() : void {
+            goldMedal.visible = false;
+            goldMedal.includeInLayout = false;
+            silverMedal.visible = false;
+            silverMedal.includeInLayout = false;
+            bronzeMedal.visible = false;
+            bronzeMedal.includeInLayout = false;
+        }
+
+        public function clear() : void {
+            _user = null;
+            clearBarrelLeft();
+            clearMedals();
+            avatar.source = null;
+            lbUserName.text = "";
+            this.visible = false;
+        }
+
+        private function onClick() : void {
+            var e : ShowUserDetailsEvent = new ShowUserDetailsEvent();
+            e.user = _user;
+            dispatchEvent(e);
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage width="86" height="108"
+                   source="@Embed('/assets/img/user/avatar_game.png')"/>
+
+    <view:AvatarView id="avatar" left="8" right="8" top="8" bottom="27"/>
+
+    <s:Label id="lbUserName" fontSize="15" textAlign="center" color="0x000000"
+             left="2" right="2" bottom="4" height="18"/>
+
+    <s:SkinnableContainer id="barrelLeftBg" visible="false"
+                          right="3" bottom="23" width="25" height="25">
+        <s:BitmapImage width="25" height="25"
+                       source="@Embed('/assets/img/common/one_barrel_left.png')"/>
+        <s:Label id="lbBarrelLeft" fontSize="14" x="5" y="6"/>
+    </s:SkinnableContainer>
+
+    <s:HGroup gap="3" x="2">
+        <view:Medal id="goldMedal" type="gold"/>
+        <view:Medal id="silverMedal" type="silver"/>
+        <view:Medal id="bronzeMedal" type="bronze"/>
+    </s:HGroup>
+
+</s:SkinnableContainer>

@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<s:Application
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="760" height="750" backgroundColor="0xffffff"
+        preloader="Preloader"
+        addedToStage="init()"
+        currentState="lobby">
+
+    <fx:Script><![CDATA[
+        import controller.Main;
+
+        import model.MainModel;
+
+        private var _main : Main;
+
+        private function init() : void {
+            trace("IS_OK", MainModel.IS_OK);
+            trace("IS_MM", MainModel.IS_MM);
+
+            banner.visible = !MainModel.IS_MM;
+
+            _main = new Main(this);
+            _main.start();
+        }
+        ]]></fx:Script>
+
+    <s:states>
+        <s:State name="lobby"/>
+        <s:State name="table_list"/>
+        <s:State name="room"/>
+        <s:State name="game"/>
+    </s:states>
+
+    <s:transitions>
+        <s:Transition fromState="*" toState="*">
+            <s:Parallel targets="{[lobbyScreen, tableListScreen, roomScreen, gameScreen]}">
+                <s:Move  duration="400"/>
+            </s:Parallel>
+        </s:Transition>
+    </s:transitions>
+
+    <s:Group width="760" height="700" clipAndEnableScrolling="true">
+        <view:Lobby
+                id="lobbyScreen"
+                x.lobby="0" x.table_list="-760" x.room="-1520" x.game="-2280"/>
+        <view:PTableListScreen
+                id="tableListScreen"
+                x.lobby="760" x.table_list="0" x.room="-760" x.game="-1520"/>
+        <view:RoomScreen
+                id="roomScreen"
+                x.lobby="1520" x.table_list="760" x.room="0" x.game="-760"/>
+        <view:GameScreen
+                id="gameScreen"
+                x.lobby="2280" x.table_list="1520" x.room="760" x.game="0"/>
+    </s:Group>
+
+    <view:Chat y="527" visible="false" visible.room="true" visible.game="true"/>
+
+    <view:AppStoreBanner id="banner" visible="false" bottom="5" horizontalCenter="0"/>
+    <view:GameResult visible="false" horizontalCenter="0" verticalCenter="0"/>
+    <view:Shop visible="false" horizontalCenter="0" verticalCenter="0"/>
+    <view:UserDetailsPopup visible="false" horizontalCenter="0" verticalCenter="0"/>
+
+</s:Application>

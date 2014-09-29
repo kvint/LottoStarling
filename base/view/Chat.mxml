@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        width="760" height="140"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        import events.ChatEvent;
+
+        import flash.text.engine.FontWeight;
+
+        import flashx.textLayout.elements.ParagraphElement;
+        import flashx.textLayout.elements.SpanElement;
+
+        import flashx.textLayout.formats.TextLayoutFormat;
+
+        import mx.utils.StringUtil;
+
+        import vk.api.MD5;
+
+        private var _color: uint = 0xffffff*Math.random();
+
+        private function init() : void {
+            parentApplication.addEventListener(ChatEvent.RECEIVE, receive);
+            parentApplication.addEventListener(ChatEvent.CLEAR, clear);
+        }
+
+        public function clear(e : ChatEvent = null) : void {
+            input.text = "";
+            while (output.textFlow.numChildren > 0) output.textFlow.removeChildAt(0);
+        }
+
+        private function send() : void {
+            var txt : String = StringUtil.trim(input.text);
+            input.text = "";
+            if(txt == "") return;
+            if(txt.length > 140) txt = txt.substr(0, 140);
+
+            var event : ChatEvent = new ChatEvent(ChatEvent.SEND);
+            event.msg = txt;
+            dispatchEvent(event);
+
+            /*
+            var e : ChatEvent = new ChatEvent(ChatEvent.RECEIVE);
+            e.msg = txt;
+            e.sender = new User();
+            e.sender.name = "Bob Bobovich";
+            receive(e);
+                    */
+        }
+
+        private function receive(event : ChatEvent) : void {
+            var name:SpanElement = new SpanElement();
+            name.fontSize = 14;
+            name.color =  uint("0x" + MD5.encrypt(event.sender.name).substr(0,6));
+            //_color/(event.sender.name.length);
+            name.text = event.sender.name;
+
+            var msg : SpanElement = new SpanElement();
+            msg.fontSize = 14;
+            msg.color =  uint("0x" + MD5.encrypt(event.sender.name).substr(0,6));
+            msg.text = ": " + event.msg;
+
+            var p:ParagraphElement = new ParagraphElement();
+            p.addChild(name);
+            p.addChild(msg);
+            output.textFlow.addChild(p);
+            callLater(scrollDown);
+
+
+        }
+
+        private function scrollDown() : void {
+            output.scroller.verticalScrollBar.value = output.scroller.verticalScrollBar.maximum;
+        }
+
+        ]]></fx:Script>
+
+    <s:VGroup gap="5" x="5">
+        <s:TextArea id="output" editable="false"
+                    width="750" height="132"/>
+        <s:HGroup gap="2">
+            <s:TextInput id="input" width="708" height="30"
+                         fontSize="14" enter="send()"/>
+            <s:Button id="btnSend" click="send()"
+                      right="0"
+                      skinClass="view.skin.ChatButton"/>
+        </s:HGroup>
+    </s:VGroup>
+
+</s:SkinnableContainer>

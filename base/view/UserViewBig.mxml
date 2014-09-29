@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="181" height="209"
+        click="onClick()" buttonMode="true">
+
+    <fx:Script><![CDATA[
+        import events.ShowUserDetailsEvent;
+
+        import vo.User;
+
+        private var _user : User;
+
+        public function get user() : User { return _user; }
+
+        public function set user(val : User) : void {
+            _user = val;
+
+            if(_user != null) {
+                avatar.source = _user.avatarUrl;
+                lbUserName.text = _user.name;
+            }
+            else {
+                avatar.source = null;
+                lbUserName.text = "";
+            }
+        }
+
+        private function onClick() : void {
+            var e : ShowUserDetailsEvent = new ShowUserDetailsEvent();
+            e.user = _user;
+            dispatchEvent(e);
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/user/avatar_big.png')"
+                   width="181" height="209" horizontalCenter="0"/>
+
+    <view:AvatarView id="avatar" left="14" right="13" top="12" bottom="43"/>
+
+    <s:Label id="lbUserName" fontSize="20" textAlign="center" color="0xffffff"
+             left="12" right="12" bottom="13" visible="false"/>
+
+</s:SkinnableContainer>

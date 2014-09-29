@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<s:Group
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        visible="false"
+        clipAndEnableScrolling="true"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        private var originalWidth : int;
+        private var originalHeight : int;
+
+        private var loader : Loader = null;
+        private var loaderContent : DisplayObject = null;
+
+        private function init() : void {
+            Security.allowDomain("*");
+            Security.allowInsecureDomain("*");
+
+            originalWidth = this.width;
+            originalHeight = this.height;
+
+            loader = new Loader();
+            loader.addEventListener(Event.ADDED, onAddedToLoader, true, int.MAX_VALUE);
+            loader.addEventListener(Event.ADDED, onAddedToLoader, false, int.MAX_VALUE);
+            loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaded);
+            loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, ignore);
+            loader.contentLoaderInfo.addEventListener(SecurityErrorEvent.SECURITY_ERROR, ignore);
+
+            if(_source) load(_source);
+        }
+
+        private var _source : String;
+
+        public function get source() : String { return _source; }
+
+        public function set source(val : String) : void {
+            if(_source == val) return;
+            _source = val;
+            clear();
+
+            if (_source) {
+                this.visible = true;
+                load(_source);
+            }
+            else this.visible = false;
+        }
+
+        private function clear() : void {
+            while(holder.numChildren) holder.removeChildAt(0);
+            holder.y = 0;
+        }
+
+        private function load(url : String) : void {
+            if(loader) loader.load(new URLRequest(url));
+        }
+
+        private function onAddedToLoader(e : Event) : void {
+            if (e.target) {
+                loaderContent = e.target as DisplayObject;
+            }
+        }
+
+        private function onLoaded(e : Event) : void {
+            var bd : BitmapData = (loaderContent as Bitmap).bitmapData;
+            var bdCopy : BitmapData = new BitmapData(bd.width, bd.height, true, 0x0);
+            bdCopy.draw(bd);
+            var bt : Bitmap = new Bitmap(bdCopy);
+            bt.smoothing = true;
+
+            var ratio : Number = bt.height / bt.width;
+            bt.width = originalWidth;
+            bt.height = originalWidth * ratio;
+            if(bt.height < originalHeight) {
+                bt.width = originalHeight / ratio;
+                bt.height = originalHeight;
+            }
+
+            holder.addChild(bt);
+            holder.x = Math.round((originalWidth - bt.width)/2);
+            holder.y = Math.round((originalHeight - bt.height)/2);
+
+            try {
+                loaderContent = loader.content;
+            } catch (se : SecurityError) {
+                // ignore
+            } catch (e : Error) {
+                trace(e);
+            }
+        }
+
+        private function ignore(e : * = null) : void {
+            // do nothing
+        }
+        ]]></fx:Script>
+
+    <s:SpriteVisualElement id="holder"/>
+
+</s:Group>
+

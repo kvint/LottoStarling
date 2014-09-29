@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="700" height="528"
+        initialize="init()">
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+
+        import events.EventTypes;
+        import model.MainModel;
+        import vo.ShopItem;
+
+        private function init() : void {
+            parentApplication.addEventListener(EventTypes.SHOW_SHOP, show);
+            parentApplication.addEventListener(EventTypes.ON_LOGIN, onChipsChanged);
+            parentApplication.addEventListener(EventTypes.CHIPS_CHANGED, onChipsChanged);
+
+            if(MainModel.IS_OK) {
+                chips1.item = vo.ShopItem.init(100000, 0, 25);
+                chips2.item = vo.ShopItem.init(250000, 0, 50);
+                chips3.item = vo.ShopItem.init(600000, 0, 100);
+                chips4.item = vo.ShopItem.init(2000000, 0, 300);
+                chips5.item = vo.ShopItem.init(10000000, 0, 500);
+                gold1.item = vo.ShopItem.init(50, 0, 25);
+                gold2.item = vo.ShopItem.init(110, 0, 50);
+                gold3.item = vo.ShopItem.init(220, 0, 95);
+                gold4.item = vo.ShopItem.init(430, 0, 180);
+                gold5.item = vo.ShopItem.init(1900, 0, 750);
+            } else if(MainModel.IS_MM){
+                chips1.item = vo.ShopItem.init(100000, 0, 25);
+                chips2.item = vo.ShopItem.init(250000, 0, 50);
+                chips3.item = vo.ShopItem.init(600000, 0, 100);
+                chips4.item = vo.ShopItem.init(2000000, 0, 300);
+                chips5.item = vo.ShopItem.init(10000000, 0, 500);
+                gold1.item = vo.ShopItem.init(50, 0, 25);
+                gold2.item = vo.ShopItem.init(110, 0, 50);
+                gold3.item = vo.ShopItem.init(220, 0, 95);
+                gold4.item = vo.ShopItem.init(430, 0, 180);
+                gold5.item = vo.ShopItem.init(1900, 0, 750);
+            }
+            else {
+                chips1.item = vo.ShopItem.init(50000, 0, 2);
+                chips2.item = vo.ShopItem.init(165000, 0, 6);
+                chips3.item = vo.ShopItem.init(600000, 0, 20);
+                chips4.item = vo.ShopItem.init(2000000, 0, 60);
+                chips5.item = vo.ShopItem.init(10000000, 0, 100);
+                gold1.item = vo.ShopItem.init(50, 0, 5);
+                gold2.item = vo.ShopItem.init(110, 0, 10);
+                gold3.item = vo.ShopItem.init(220, 0, 19);
+                gold4.item = vo.ShopItem.init(430, 0, 36);
+                gold5.item = vo.ShopItem.init(1900, 0, 150);
+            }
+        }
+
+        private function onChipsChanged(event : Event) : void {
+            lbChips.text = Utils.formatChips(MainModel.inst.user.chips);
+            lbGold.text = Utils.formatChips(MainModel.inst.user.gold);
+        }
+
+        public function show(event : Event = null) : void {
+            this.visible = true;
+        }
+
+        public function close() : void {
+            this.visible = false;
+        }
+
+        /*
+        private function exchange() : void {
+            var gold : int = updateExchange();
+            if(gold == 0) return;
+
+            var event : ExchangeEvent = new ExchangeEvent();
+            event.gold = gold;
+            dispatchEvent(event);
+        }
+
+        private function updateExchange() : int {
+            var gold : int = parseInt(iGold.text);
+            if(isNaN(gold)) { gold = 10; iGold.text = "10"; }
+            if(gold < 0) gold = 0;
+            if(gold > MainModel.inst.user.gold) {
+                gold = MainModel.inst.user.gold;
+                iGold.text = "" + MainModel.inst.user.gold;
+            }
+            iChips.text = "" + (gold * 1000);
+            return gold;
+        }
+        */
+
+        ]]></fx:Script>
+
+    <s:BitmapImage width="700" height="528"
+                   source="@Embed('/assets/img/shop/shop_bg.png')"/>
+
+    <s:VGroup x="125" y="43" width="150" gap="4">
+        <s:Label id="lbChips" width="150" color="0xffffff" fontSize="20" textAlign="center"/>
+        <s:Label text="Добавить фишек" width="150" color="0xffffff" fontSize="16" textAlign="center"/>
+    </s:VGroup>
+
+    <s:VGroup x="435" y="43" width="150" gap="4">
+        <s:Label id="lbGold" width="150" color="0xffffff" fontSize="20" textAlign="center"/>
+        <s:Label text="Добавить золота" width="150" color="0xffffff" fontSize="16" textAlign="center"/>
+    </s:VGroup>
+
+    <s:HGroup x="52" y="100" gap="10">
+        <s:VGroup gap="1">
+            <view:ShopItem id="chips1" type="red"/>
+            <view:ShopItem id="chips2" type="green"/>
+            <view:ShopItem id="chips3" type="blue"/>
+            <view:ShopItem id="chips4" type="red"/>
+            <view:ShopItem id="chips5" type="green"/>
+        </s:VGroup>
+        <s:VGroup gap="1">
+            <view:ShopItem id="gold1" type="gold"/>
+            <view:ShopItem id="gold2" type="gold"/>
+            <view:ShopItem id="gold3" type="gold"/>
+            <view:ShopItem id="gold4" type="gold"/>
+            <view:ShopItem id="gold5" type="gold"/>
+        </s:VGroup>
+    </s:HGroup>
+
+    <s:Button horizontalCenter="0" width="180" height="33" bottom="55"
+              label="Закрыть" click="close()"
+              skinClass="view.skin.ChangeRoomButton"/>
+
+</s:SkinnableContainer>

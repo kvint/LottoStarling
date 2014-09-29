@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<s:Panel
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        title="Game Result"
+        width="500" height="400"
+        initialize="init()">
+
+    <fx:Script><![CDATA[
+        import events.EventTypes;
+
+        private var _closeTimer : Timer;
+
+        private function init() : void {
+            _closeTimer = new Timer(10000, 1);
+            _closeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, close);
+            parentApplication.addEventListener(EventTypes.END_GAME, onEndGame);
+        }
+
+        private function onEndGame(event : Event) : void {
+            //this.visible = true;
+            //_closeTimer.start();
+        }
+
+        public function close(event : TimerEvent = null) : void {
+            this.visible = false;
+            _closeTimer.stop();
+        }
+
+        ]]></fx:Script>
+
+    <s:VGroup horizontalCenter="0" verticalCenter="0" gap="20">
+        <view:GameResultItem type="gold"/>
+        <view:GameResultItem type="silver"/>
+        <view:GameResultItem type="bronze"/>
+    </s:VGroup>
+
+    <s:Button label="Close" click="close()"
+              horizontalCenter="0" bottom="30"
+              skinClass="view.skin.ButtonSkin"/>
+
+</s:Panel>

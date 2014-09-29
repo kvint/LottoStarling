@@ -1,0 +1,355 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="760" height="700" backgroundColor="0xf6c786"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+
+        import controller.SoundManager;
+
+        import events.BuyBonusEvent;
+        import events.EventTypes;
+        import events.NewBarrelEvent;
+        import events.SetNumberEvent;
+        import events.StartGameEvent;
+        import events.UseBonusEvent;
+        import model.MainModel;
+        import vo.BoughtBonuses;
+
+        private var _model : MainModel = MainModel.inst;
+        private var _missedCells : Array = [];
+        private var _doHighlight : Boolean = false;
+
+        private function init() : void {
+            parentApplication.addEventListener(EventTypes.ON_LOGIN, onLogin);
+            parentApplication.addEventListener(StartGameEvent.START_GAME, onStartGame);
+            parentApplication.addEventListener(EventTypes.CHIPS_CHANGED, updateChipsAndGold);
+            parentApplication.addEventListener(NewBarrelEvent.NEW_BARREL, onNewBarrel);
+        }
+
+        private function onLogin(event : Event) : void {
+            btnAuto1.label = Utils.formatNum(_model.settings.bonusAuto1Price);
+            btnAuto5.label = Utils.formatNum(_model.settings.bonusAuto5Price);
+            btnMissRed.label = btnMiss.label = Utils.formatNum(_model.settings.bonusMissedPrice);
+            btnHL.label = Utils.formatNum(_model.settings.bonusHighlightPrice);
+        }
+
+        private function onStartGame(event : StartGameEvent) : void {
+            clearOnStart();
+            card1.setVal(event.cards[0]);
+            card2.setVal(event.cards[1]);
+            card3.setVal(event.cards[2]);
+            card4.setVal(event.cards[3]);
+            lbBet.text = Utils.formatChips(_model.currRoom.bet);
+            updateBonuses();
+            updateChipsAndGold();
+        }
+
+        public function onNewBarrel(event : NewBarrelEvent) : void {
+            addMissedCell(1, card1.onNewBarrel(event.barrel, _doHighlight));
+            addMissedCell(2, card2.onNewBarrel(event.barrel, _doHighlight));
+            addMissedCell(3, card3.onNewBarrel(event.barrel, _doHighlight));
+            addMissedCell(4, card4.onNewBarrel(event.barrel, _doHighlight));
+            updateBonuses();
+        }
+
+        private function addMissedCell(cardId : int, cell : CardCell) : void {
+            if(cell == null) return;
+            _missedCells.push([cardId, cell]);
+
+            if(_model.settings.bonuses.missed > 0) closeMissedCell();
+            else updateBonuses();
+        }
+
+        private function closeMissedCell() : void {
+            var applyAfterBuying : Boolean;
+
+            // check if we can apply bonus
+            if(_missedCells.length > 0) { // can apply bonus
+                if(_model.settings.bonuses.missed > 0) {
+                    // apply bonus
+                    _model.settings.bonuses.missed--;
+                    updateBonuses();
+                    applyMissedBonus();
+                    return;
+                }
+                else applyAfterBuying = true;
+            }
+            else applyAfterBuying = false;
+
+            // check if enough gold
+            if(_model.user.gold < _model.settings.bonusMissedPrice) {
+                dispatchEvent(new Event(EventTypes.SHOW_SHOP, true));
+                return;
+            }
+
+            var event : BuyBonusEvent = new BuyBonusEvent();
+            event.bonusId = BoughtBonuses.MISSED;
+            event.apply = false;
+            dispatchEvent(event);
+
+            if(applyAfterBuying) applyMissedBonus();
+            else {
+                _model.settings.bonuses.missed++;
+                updateBonuses();
+            }
+        }
+
+        private function applyMissedBonus() : void {
+            var data : Array = _missedCells.shift();
+            var cardId : int = data[0];
+            var cell : CardCell = data[1];
+            cell.close();
+
+            var event : SetNumberEvent = new SetNumberEvent();
+            event.cardId = cardId;
+            event.number = cell.val;
+            dispatchEvent(event);
+
+            var event1 : UseBonusEvent = new UseBonusEvent();
+            event1.bonusId = BoughtBonuses.MISSED;
+            dispatchEvent(event1);
+        }
+
+        private function highlight() : void {
+            var applyAfterBuying : Boolean;
+
+            // check if we can apply bonus
+            if(!_doHighlight) { // can apply bonus
+                if(_model.settings.bonuses.highlight > 0) {
+                    // apply bonus
+                    _model.settings.bonuses.highlight--;
+                    updateBonuses();
+                    applyHighlightBonus();
+                    return;
+                }
+                else applyAfterBuying = true;
+            }
+            else applyAfterBuying = false;
+
+            // check if enough gold
+            if(_model.user.gold < _model.settings.bonusHighlightPrice) {
+                dispatchEvent(new Event(EventTypes.SHOW_SHOP, true));
+                return;
+            }
+
+            var event : BuyBonusEvent = new BuyBonusEvent();
+            event.bonusId = BoughtBonuses.HIGHLIGHT;
+            event.apply = false;
+            dispatchEvent(event);
+
+            if(applyAfterBuying) applyHighlightBonus();
+            else {
+                _model.settings.bonuses.highlight++;
+                updateBonuses();
+            }
+        }
+
+        private function applyHighlightBonus() : void {
+            _doHighlight = true;
+
+            card1.highlightCells();
+            card2.highlightCells();
+            card3.highlightCells();
+            card4.highlightCells();
+
+            var event : UseBonusEvent = new UseBonusEvent();
+            event.bonusId = BoughtBonuses.HIGHLIGHT;
+            dispatchEvent(event);
+        }
+
+        private function buyAuto5() : void {
+            if(_model.user.gold < _model.settings.bonusAuto5Price) {
+                dispatchEvent(new Event(EventTypes.SHOW_SHOP, true));
+                return;
+            }
+
+            _model.settings.bonuses.auto1 += 5;
+            var event : BuyBonusEvent = new BuyBonusEvent();
+            event.bonusId = BoughtBonuses.AUTO_5;
+            event.apply = false;
+            dispatchEvent(event);
+
+            card1.autoCloseCells();
+            card2.autoCloseCells();
+            card3.autoCloseCells();
+            card4.autoCloseCells();
+            updateBonuses();
+        }
+
+        private function buyAuto1() : void {
+            if(_model.user.gold < _model.settings.bonusAuto1Price) {
+                dispatchEvent(new Event(EventTypes.SHOW_SHOP, true));
+                return;
+            }
+
+            _model.settings.bonuses.auto1 += 1;
+            var event : BuyBonusEvent = new BuyBonusEvent();
+            event.bonusId = BoughtBonuses.AUTO_1;
+            event.apply = false;
+            dispatchEvent(event);
+
+            card1.autoCloseCells();
+            card2.autoCloseCells();
+            card3.autoCloseCells();
+            card4.autoCloseCells();
+            updateBonuses();
+        }
+
+        private function updateChipsAndGold(event : Event = null) : void {
+            lbChips.text = Utils.formatChips(_model.user.chips);
+            lbGold.text = Utils.formatChips(_model.user.gold);
+        }
+
+        private function updateBonuses() : void {
+            lbAutoBonus.text = Utils.formatNum(_model.settings.bonuses.auto1);
+            lbMissBonus.text = Utils.formatNum(_model.settings.bonuses.missed);
+            lbHLBonus.text = Utils.formatNum(_model.settings.bonuses.highlight);
+
+            if(_missedCells.length) {
+                btnMissRed.visible = true;
+                btnMiss.visible = false;
+            }
+            else {
+                btnMissRed.visible = false;
+                btnMiss.visible = true;
+            }
+        }
+
+        private function giveUp() : void {
+            var popup : ConfirmPopup = new ConfirmPopup();
+            popup.title = "Выход из игры";
+            popup.msg = "Вы действительно хотите выйти из игры?";
+            popup.okLabel = "Выйти";
+            popup.cancelLabel = "Отмена";
+            popup.closeCallback = function(popup : ConfirmPopup, confirm : Boolean) : void {
+                if(confirm) {
+                    var event : Event = new Event(EventTypes.LEAVE_ROOM, true);
+                    dispatchEvent(event);
+                    clear();
+                    SoundManager.inst.giveUp();
+                }
+                removeElement(popup);
+            }
+            addElement(popup);
+        }
+
+        private function buyCard() : void {
+            if(_model.user.gold < _model.settings.bonusAddCardPrice) {
+                dispatchEvent(new Event(EventTypes.SHOW_SHOP, true));
+                return;
+            }
+
+            card4.active = true;
+            card4.autoCloseCells();
+            var missedCells : Array = card4.checkMissedCells();
+            for each(var cell : CardCell in missedCells) addMissedCell(4, cell);
+            if(_doHighlight) card4.highlightCells();
+
+            var event : BuyBonusEvent = new BuyBonusEvent();
+            event.bonusId = BoughtBonuses.ADD_CARD;
+            event.apply = true;
+            dispatchEvent(event);
+        }
+
+        private function clearOnStart() : void {
+            users.clearMedals();
+            barrels.clear();
+            lbBet.text = "";
+            _doHighlight = false;
+            card4.active = false;
+            _missedCells = [];
+            updateBonuses();
+        }
+
+        private function clear() : void {
+            clearOnStart();
+            users.clear();
+            card1.clear();
+            card2.clear();
+            card3.clear();
+            card4.clear();
+        }
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/back_tile.png')"
+                   y="205" width="760" height="595" fillMode="repeat"/>
+    <s:BitmapImage source="@Embed('/assets/img/game_top.png')"
+                   y="0" width="760" height="209"/>
+    <view:GameUsers id="users" x="10" y="10"/>
+
+    <s:SkinnableContainer x="15" y="127">
+        <s:BitmapImage source="@Embed('/assets/img/common/chips_coin.png')"
+                       y="0" width="30" height="30"/>
+        <s:BitmapImage source="@Embed('/assets/img/common/gold_coin.png')"
+                       y="32" width="30" height="30"/>
+        <s:Label id="lbChips" text="500,700" fontSize="18" color="0xffffff"
+                 x="35" y="7" width="95"/>
+        <s:Label id="lbGold" text="105,400K" fontSize="18" color="0xffffff"
+                 x="35" y="39" width="95"/>
+    </s:SkinnableContainer>
+
+    <view:GameBarrels id="barrels" x="115" y="122"/>
+
+    <s:Button y="0" right="10" width="118" height="27"
+              label="Выйти" click="giveUp()"
+              skinClass="view.skin.BackWoodButton"/>
+
+    <s:BitmapImage source="@Embed('/assets/img/common/game_bet.png')"
+                   y="45" right="10" width="136" height="55"/>
+    <s:Label id="lbBet" text="25,000"
+             fontSize="20" color="0x4a3c2e" textAlign="center"
+             y="64" right="12" width="80"/>
+
+    <s:HGroup x="450" y="125" gap="7">
+        <s:Button id="btnAuto1" label="0" click="buyAuto1()"
+                  toolTip="Автовыставление одного бочонка"
+                  skinClass="view.skin.Auto1BonusButton"/>
+        <s:Group>
+            <s:BitmapImage source="@Embed('/assets/img/common/bonus_badge.png')"
+                           x="16" y="69" width="41" height="22"/>
+            <s:Button id="btnAuto5" label="0" click="buyAuto5()"
+                      toolTip="Автовыставление пяти бочонков"
+                      skinClass="view.skin.Auto5BonusButton"/>
+            <s:Label id="lbAutoBonus" color="0x4a3c2e" textAlign="center"
+                     x="21" y="73" width="32" fontSize="12" text="0"/>
+        </s:Group>
+        <s:Group>
+        <s:BitmapImage source="@Embed('/assets/img/common/bonus_badge.png')"
+                       x="16" y="69" width="41" height="22"/>
+            <s:Button id="btnMissRed" label="0" visible="false" click="closeMissedCell()"
+                      toolTip="Закрытие пропущенного числа с крестиком"
+                      skinClass="view.skin.MissedBonusRedButton"/>
+            <s:Button id="btnMiss" label="0" click="closeMissedCell()"
+                      toolTip="Закрытие пропущенного числа с крестиком"
+                      skinClass="view.skin.MissedBonusButton"/>
+            <s:Label id="lbMissBonus" color="0x4a3c2e" textAlign="center"
+                     x="21" y="73" width="32" fontSize="12" text="0"/>
+        </s:Group>
+        <s:Group>
+        <s:BitmapImage source="@Embed('/assets/img/common/bonus_badge.png')"
+                       x="16" y="69" width="41" height="22"/>
+            <s:Button id="btnHL" label="0" click="highlight()"
+                      toolTip="Подсветка выпадающих чисел на карточке в течение всей партии"
+                      skinClass="view.skin.HighlightBonusButton"/>
+            <s:Label id="lbHLBonus" color="0x4a3c2e" textAlign="center"
+                     x="21" y="73" width="32" fontSize="12" text="0"/>
+        </s:Group>
+    </s:HGroup>
+
+    <s:VGroup horizontalCenter="0" y="215">
+        <s:HGroup>
+            <view:Card id="card1" cardId="1"/>
+            <view:Card id="card2" cardId="2"/>
+        </s:HGroup>
+        <s:HGroup>
+            <view:Card id="card3" cardId="3"/>
+            <view:Card id="card4" cardId="4" active="false" onClickBuy="buyCard()"/>
+        </s:HGroup>
+    </s:VGroup>
+
+</s:SkinnableContainer>

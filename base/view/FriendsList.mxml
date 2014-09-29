@@ -1,0 +1,263 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="760" height="205">
+
+    <fx:Script><![CDATA[
+        import as2bert.As2Bert;
+        import as2bert.DecodedData;
+
+        import common.Utils;
+
+        import dssocket.DSBertSocket;
+        import dssocket.DSReply;
+
+        import model.MainModel;
+
+        import mx.collections.ArrayCollection;
+
+        import vo.User;
+
+        private var _allFriends:Array;
+        private var _appUsers:Array;
+
+        private var _friends:Array = [];
+        private var _todayBest:Array = [];
+        private var _top:Array = [];
+
+        private var _socket:DSBertSocket = DSBertSocket.instance;
+
+        [Bindable]
+        private var list:ArrayCollection = new ArrayCollection();
+
+        public function load():void {
+            if (MainModel.IS_OK) {
+                MainModel.OK.friendsCallback = onFriendsLoaded;
+                MainModel.OK.getFriends();
+                MainModel.OK.appUsersCallback = onAppUsersLoaded;
+                MainModel.OK.getAppUsers();
+            } else if (MainModel.IS_MM) {
+                MainModel.MM.friendsCallback = onFriendsLoaded;
+                MainModel.MM.getFriends();
+                MainModel.MM.appUsersCallback = onAppUsersLoaded;
+                MainModel.MM.getAppUsers();
+            }
+            else {
+                // DOC: https://vk.com/dev/friends.get
+                if (MainModel.HOST != "localhost") {
+                    var params:Object = { order: "random", fields: "photo_100",
+                        name_case: "nom", v: "5.2" };
+                    MainModel.VK.api("friends.get", params, onFriendsLoaded, onError);
+                    MainModel.VK.api("friends.getAppUsers", null, onAppUsersLoaded, onError);
+                }
+                else initWithTempData();
+            }
+        }
+
+        private function onFriendsLoaded(data:Object):void {
+            if (MainModel.IS_OK) {
+                _allFriends = data as Array;
+            } else if (MainModel.IS_MM) {
+                _allFriends = data as Array;
+                // trace("All friends:" + _allFriends);
+            }
+            else {
+                _allFriends = data.items;
+            }
+            //trace(this, "friends loaded", _allFriends.length);
+            if (_appUsers) update();
+        }
+
+        private function onAppUsersLoaded(data:Object):void {
+            _appUsers = data as Array;
+            trace(this, "app users loaded", _appUsers);
+            if (_allFriends) update();
+        }
+
+        private function onError(data:Object):void {
+            trace(this, "onError", data.error_msg);
+        }
+
+        private function initWithTempData():void {
+            var data:Object = {
+                count: 3,
+                items: [
+                    {
+                        id: "45788001",
+                        first_name: "Александр",
+                        last_name: "Славщик",
+                        online: 0,
+                        photo_100: "http://cs308525.vk.me/v308525001/860f/0HXnzJqGq0M.jpg"
+                    },
+                    {
+                        id: "3485491",
+                        first_name: "Алексей",
+                        last_name: "Логинов",
+                        online: 1,
+                        photo_100: "http://cs408818.vk.me/v408818491/30ab/_KhxCGqVeNw.jpg"
+                    },
+                    {
+                        id: "222082577",
+                        first_name: "Юрий",
+                        last_name: "Бушмелев",
+                        online: 0,
+                        photo_100: "http://cs317622.vk.me/v317622577/c91d/5xLNpPDbUEI.jpg"
+                    }
+                ]
+            };
+            onFriendsLoaded(data);
+            onAppUsersLoaded(["3485491", "45788001"]);
+        }
+
+        private function update():void {
+            // VK
+            if (!MainModel.IS_OK || MainModel.IS_MM) {
+                _allFriends.sortOn("id");
+            }
+            _appUsers.sort();
+
+            _friends = [];
+            var notInAppFriends:Array = [];
+            var len:int = Math.max(_appUsers.length, _allFriends.length);
+            for (var i:int = 0; i < len; i++) {
+                if (i >= _appUsers.length) break;
+                if (i >= _allFriends.length) break;
+
+                var appUserId:String = _appUsers[i];
+                var friend:Object = _allFriends[i];
+
+                var user:User;
+                if (MainModel.IS_OK || MainModel.IS_MM) {
+                    user = friend as User;
+                }
+                else {
+                    user = new User;
+                    user.id = friend.id;
+                    user.name = friend.first_name + " " + friend.last_name;
+                    user.avatarUrl = friend.photo_100;
+                    user.type = User.VKONTAKTE;
+                }
+
+                if (user.id == appUserId) {
+                    _friends.push(user);
+                }
+                else {
+                    notInAppFriends.push(user);
+                    if (user.id < appUserId) _allFriends.splice(i, 1);
+                    else _appUsers.splice(i, 1);
+                    i--;
+                }
+            }
+            _friends.sortOn("chips", Array.DESCENDING | Array.NUMERIC);
+
+            list.source = _friends;
+
+            if (notInAppFriends.length) {
+                inviteUser.user = Utils.randItem(notInAppFriends);
+                inviteUser.visible = true;
+            }
+
+            loadChipsAndLevels();
+        }
+
+        private function loadChipsAndLevels():void {
+            var data:Array = [];
+            for (var i:int = 0; i < list.length; i++) {
+                var user:User = list[i];
+                data.push(As2Bert.encBStr(user.id));
+            }
+            _socket.call("sync_friends", As2Bert.encList(data),
+                    function (reply:DSReply):void {
+                        if (reply.success) {
+                            for (var i:int = 0; i < reply.payload.length; i++) {
+                                var data:DecodedData = reply.payload.getDecodedData(i);
+                                var userId:String = Utils.ba2s(data.getBinary(1));
+                                var chips:int = data.getInt(2);
+                                var level:int = data.getInt(3);
+
+                                var user:User = list[i];
+                                if (user.id == userId) {
+                                    user.chips = chips;
+                                    user.level = level;
+                                    list[i] = user;
+                                    _friends[i] = user;
+                                }
+                                else trace("user id not match", user.id, userId, "at index", i);
+                            }
+                            _friends.sortOn("chips", Array.DESCENDING | Array.NUMERIC);
+                        }
+                        else trace("FriendsList, error loading chips and levels", reply.errorCode);
+                    });
+        }
+
+        private function showFriends():void {
+            _friends.sortOn("chips", Array.DESCENDING | Array.NUMERIC);
+            list.source = _friends;
+        }
+
+        private function showTodayBest():void {
+            list.source = _todayBest;
+            if (_todayBest.length > 0) return
+
+            _socket.call("todays_top", As2Bert.encInt(20),
+                    function (reply:DSReply):void {
+                        if (reply.success) {
+                            for (var i:int = 0; i < reply.payload.length; i++) {
+                                var user:User = new User;
+                                user.decode(reply.payload.getDecodedData(i));
+                                _todayBest.push(user);
+                            }
+                            _todayBest.sortOn("chips", Array.DESCENDING | Array.NUMERIC);
+                            list.source = _todayBest;
+
+                        }
+                        else trace("FriendsList, error loading todays top", reply.errorCode);
+                    });
+        }
+
+        private function showTop():void {
+            list.source = _top;
+            if (_top.length > 0) return;
+
+            _socket.call("top", As2Bert.encInt(20),
+                    function (reply:DSReply):void {
+                        if (reply.success) {
+                            for (var i:int = 0; i < reply.payload.length; i++) {
+                                var user:User = new User;
+                                user.decode(reply.payload.getDecodedData(i));
+                                _top.push(user);
+                            }
+                            list.source = _top;
+                        }
+                        else trace("FriendsList, error loading top 20", reply.errorCode);
+                    });
+        }
+
+        public override function toString():String {
+            return "FriendsList";
+        }
+        ]]></fx:Script>
+
+    <view:FriendTabs x="10" y="1"
+                     showFriends="showFriends()"
+                     showTodayBest="showTodayBest()"
+                     showTop="showTop()"/>
+
+    <s:BitmapImage source="@Embed('/assets/img/friends_panel/back.png')"
+                   x="10" y="25" width="648" height="170"/>
+
+    <s:Scroller y="35" x="18">
+        <s:DataGroup width="630" height="137"
+                     clipAndEnableScrolling="true" dataProvider="{list}"
+                     itemRenderer="view.FriendView">
+            <s:layout>
+                <s:HorizontalLayout gap="5" useVirtualLayout="true" />
+            </s:layout>
+        </s:DataGroup>
+    </s:Scroller>
+
+    <view:InviteUser id="inviteUser" y="35" right="8" visible="false"/>
+
+</s:SkinnableContainer>

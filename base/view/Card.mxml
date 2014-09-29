@@ -1,0 +1,230 @@
+<?xml version="1.0"?>
+<s:BorderContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        creationComplete="init()">
+
+    <fx:Metadata>
+        [Event(name="onClickBuy", type="flash.events.Event")]
+    </fx:Metadata>
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+
+        import controller.SoundManager;
+
+        import events.EventTypes;
+        import events.SetNumberEvent;
+        import events.UseBonusEvent;
+
+        import model.MainModel;
+
+        import vo.BoughtBonuses;
+        import vo.Card;
+
+        private var _model : MainModel = MainModel.inst;
+
+        public var cardId : int = 0;
+
+        private var _row1 : Array;
+        private var _row2 : Array;
+        private var _row3 : Array;
+        private var _cells : Array;
+
+        private function init() : void {
+            _row1 = [c11, c12, c13, c14, c15, c16, c17, c18, c19];
+            _row2 = [c21, c22, c23, c24, c25, c26, c27, c28, c29];
+            _row3 = [c31, c32, c33, c34, c35, c36, c37, c38, c39];
+            _cells = _row1.concat(_row2, _row3);
+            cellsHolder.enabled = _active;
+            hide.visible = btnBuy.visible = !_active;
+
+            parentApplication.addEventListener(EventTypes.ON_LOGIN, onLogin);
+            addEventListener(EventTypes.CLICK_CARD_CELL, onClickCardCell);
+        }
+
+        private function onLogin(event : Event) : void {
+            btnBuy.label = "" + _model.settings.bonusAddCardPrice;
+
+            // TEMP
+            var card : vo.Card = new vo.Card();
+            card.initDefault();
+            setVal(card);
+        }
+
+        public function setVal(card : vo.Card) : void {
+            for(var i : String in _cells) {
+                var val : int = card.cells[i];
+                var cell : CardCell = _cells[i];
+                cell.val = val;
+            }
+        }
+
+        private function onClickCardCell(event : Event) : void {
+            event.stopPropagation();
+
+            var cell : CardCell = CardCell(event.target);
+            if(cell.active) {
+                var barrels : Array = _model.last5barrels();
+                if(Utils.arrExists(cell.val, barrels)) {
+                    var event2 : SetNumberEvent = new SetNumberEvent();
+                    event2.cardId = cardId;
+                    event2.number = cell.val;
+                    dispatchEvent(event2);
+                    cell.close();
+                }
+            }
+        }
+
+        public function onNewBarrel(barrel : int, highlight : Boolean) : CardCell {
+            if(!_active) return null;
+            autoClose(barrel);
+
+            var outBarrel : int = -100;
+            if(_model.barrels.length > 5) outBarrel = _model.barrels[_model.barrels.length - 6];
+
+            for(var i : String in _cells) {
+                var cell : CardCell = _cells[i];
+                if(highlight && cell.val == barrel && cell.active) cell.highlight();
+                if(cell.val == outBarrel && cell.active) {
+                    cell.miss();
+                    SoundManager.inst.userMissedBonus();
+                    return cell;
+                }
+            }
+            return null;
+        }
+
+        public function highlightCells() : void {
+            if(!_active) return;
+            for(var i : String in _cells) {
+                var cell : CardCell = _cells[i];
+                if(!cell.active) continue;
+                if(Utils.arrExists(cell.val, _model.barrels)) cell.highlight();
+            }
+        }
+
+        public function checkMissedCells() : Array {
+            if(!_active) return null;
+            if(_model.barrels.length <= 5) return null;
+
+            var missedCells : Array = [];
+            var outBarrels : Array = _model.barrels.slice(0, -5);
+            for(var i : String in _cells) {
+                var cell : CardCell = _cells[i];
+                if(cell.active && Utils.arrExists(cell.val, outBarrels)) {
+                    cell.miss();
+                    missedCells.push(cell);
+                }
+            }
+            return missedCells;
+        }
+
+        private function autoClose(barrel : int) : void {
+            if(_model.settings.bonuses.auto1 <= 0) return;
+            for each(var cell : CardCell in _cells) {
+                if(cell.active && cell.val == barrel) {
+                    cell.close();
+                    _model.settings.bonuses.auto1--;
+
+                    var event1 : SetNumberEvent = new SetNumberEvent();
+                    event1.cardId = cardId;
+                    event1.number = cell.val;
+                    dispatchEvent(event1);
+
+                    var event2 : UseBonusEvent = new UseBonusEvent();
+                    event2.bonusId = BoughtBonuses.AUTO_1;
+                    dispatchEvent(event2);
+
+                    return;
+                }
+            }
+        }
+
+        public function autoCloseCells() : void {
+            if(!_active) return;
+            for each(var barrel : int in _model.barrels) autoClose(barrel);
+        }
+
+        public function clear() : void {
+            for each(var cell : CardCell in _cells) cell.clear();
+        }
+
+        public var _active : Boolean = true;
+
+        public function get active() : Boolean {
+            return _active;
+        }
+
+        public function set active(val : Boolean) : void {
+            _active = val;
+            if(cellsHolder) cellsHolder.enabled = val;
+            if(btnBuy) hide.visible = btnBuy.visible = !val;
+        }
+
+        private function buyCard() : void {
+            dispatchEvent(new Event("onClickBuy"));
+        }
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/card/card_bg.png')"
+                   width="371" height="141"/>
+
+    <s:Group x="14" y="13">
+        <s:Line xFrom="0" xTo="342" yFrom="114" yTo="114">
+            <s:stroke>
+                <s:SolidColorStroke color="0xbaab98" weight="1"/>
+            </s:stroke>
+        </s:Line>
+        <s:Line xFrom="342" xTo="342" yFrom="0" yTo="114">
+            <s:stroke>
+                <s:SolidColorStroke color="0xbaab98" weight="1"/>
+            </s:stroke>
+        </s:Line>
+    </s:Group>
+
+    <s:VGroup id="cellsHolder" gap="0" x="14" y="13">
+        <s:HGroup gap="0">
+            <view:CardCell id="c11"/>
+            <view:CardCell id="c12"/>
+            <view:CardCell id="c13"/>
+            <view:CardCell id="c14"/>
+            <view:CardCell id="c15"/>
+            <view:CardCell id="c16"/>
+            <view:CardCell id="c17"/>
+            <view:CardCell id="c18"/>
+            <view:CardCell id="c19"/>
+        </s:HGroup>
+        <s:HGroup gap="0">
+            <view:CardCell id="c21"/>
+            <view:CardCell id="c22"/>
+            <view:CardCell id="c23"/>
+            <view:CardCell id="c24"/>
+            <view:CardCell id="c25"/>
+            <view:CardCell id="c26"/>
+            <view:CardCell id="c27"/>
+            <view:CardCell id="c28"/>
+            <view:CardCell id="c29"/>
+        </s:HGroup>
+        <s:HGroup gap="0">
+            <view:CardCell id="c31"/>
+            <view:CardCell id="c32"/>
+            <view:CardCell id="c33"/>
+            <view:CardCell id="c34"/>
+            <view:CardCell id="c35"/>
+            <view:CardCell id="c36"/>
+            <view:CardCell id="c37"/>
+            <view:CardCell id="c38"/>
+            <view:CardCell id="c39"/>
+        </s:HGroup>
+    </s:VGroup>
+
+    <s:SkinnableContainer id="hide" width="371" height="141" visible="false"
+                          backgroundColor="0x000000" backgroundAlpha="0.5"/>
+
+    <s:Button id="btnBuy" label="0" click="buyCard()" visible="false"
+              verticalCenter="0" horizontalCenter="0"
+              skinClass="view.skin.AddCardButton"/>
+
+</s:BorderContainer>

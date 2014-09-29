@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="86" height="130"
+        buttonMode="true" click="invite()">
+
+    <fx:Script><![CDATA[
+        import mailru.MailruCall;
+
+        import model.MainModel;
+
+        import vo.User;
+
+        private var _user : User;
+
+        public function get user() : User { return _user; }
+
+        public function set user(user : User) : void {
+            _user = user;
+
+            if(_user) {
+                avatar.source = _user.avatarUrl;
+                lbUserName.text = _user.name;
+            }
+            else {
+                avatar.source = null;
+                lbUserName.text = "";
+            }
+        }
+
+        private function invite() : void {
+            if(MainModel.IS_OK) MainModel.OK.invite();
+            else if(MainModel.IS_MM){
+                MainModel.MM.invite();
+            }
+            else MainModel.VK.callMethod("showInviteBox");
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage width="86" height="108"
+                   source="@Embed('/assets/img/user/avatar_game.png')"/>
+
+    <view:AvatarView id="avatar" x="8" y="8" width="70" height="73"/>
+
+    <s:Label id="lbUserName" fontSize="15" textAlign="center" color="0x4a3c2e"
+             x="2" y="88" width="82" height="17"/>
+
+    <s:BitmapImage source="@Embed('/assets/img/friends_panel/invite_friend2.png')"
+                   y="112" horizontalCenter="0"
+                   width="90" height="48"/>
+
+</s:SkinnableContainer>

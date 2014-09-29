@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        buttonMode="true" click="invite()"
+        toolTip="За каждого друга ежедневно 100 фишек">
+
+    <fx:Script><![CDATA[
+        import mailru.MailruCall;
+
+        import model.MainModel;
+
+        private function invite() : void {
+            if(MainModel.IS_OK) MainModel.OK.invite();
+            else if(MainModel.IS_MM){
+                MainModel.MM.invite();
+            }
+            else MainModel.VK.callMethod("showInviteBox");
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/friends_panel/invite_friend2.png')"
+                   width="90" height="48"/>
+
+</s:SkinnableContainer>

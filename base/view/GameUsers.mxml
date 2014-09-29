@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        import events.EventTypes;
+        import events.MedalEvent;
+        import events.OneBarrelLeftEvent;
+
+        import model.MainModel;
+
+        import vo.User;
+
+        private var _model : MainModel = MainModel.inst;
+        private var _userViews : Array = [];
+
+        private function init() : void {
+            _userViews = [u1, u2, u3, u4, u5, u6];
+            parentApplication.addEventListener(EventTypes.UPDATE_USERS, updateUsers);
+            parentApplication.addEventListener(OneBarrelLeftEvent.ONE_BARREL_LEFT, onOneBarrelLeft);
+            parentApplication.addEventListener(MedalEvent.BRONZE_MEDAL, onMedal);
+            parentApplication.addEventListener(MedalEvent.SILVER_MEDAL, onMedal);
+            parentApplication.addEventListener(MedalEvent.GOLD_MEDAL, onMedal);
+
+            //initWithTestUsers();
+        }
+
+        private function initWithTestUsers() : void {
+            for(var i : int = 0; i < 6; i++) {
+                var user : User = new User;
+                user.id = "user" + i;
+                user.name = "User " + i;
+                user.avatarUrl = "http://cs416326.vk.me/v416326353/202f/NLCjpgRV-bQ.jpg";
+
+                var userView : GameUserView = _userViews[i];
+                userView.user = user;
+            }
+        }
+
+        private function updateUsers(event : Event = null) : void {
+            var users : Array = _model.currRoom.users;
+            for(var i : String  in _userViews) {
+                var userView : GameUserView = _userViews[i];
+                var user : User = users[i];
+                if(user) userView.user = user;
+                else userView.clear();
+            }
+        }
+
+        private function onOneBarrelLeft(event : OneBarrelLeftEvent) : void {
+            for each(var userView : GameUserView in _userViews) {
+                if(userView.showsUser(event.userId)) userView.setBarrelLeft(event.number);
+            }
+        }
+
+        private function onMedal(event : MedalEvent) : void {
+            for each(var userView : GameUserView in _userViews) {
+                if(userView.showsUser(event.userId)) userView.showMedal(event);
+                else userView.clearBarrelLeft();
+            }
+        }
+
+        public function clearMedals() : void {
+            for each(var userView : GameUserView in _userViews) userView.clearMedals();
+        }
+
+        public function clear() : void {
+            for each(var userView : GameUserView in _userViews) userView.clear();
+        }
+        ]]></fx:Script>
+
+    <s:HGroup gap="10">
+        <view:GameUserView id="u1"/>
+        <view:GameUserView id="u2"/>
+        <view:GameUserView id="u3"/>
+        <view:GameUserView id="u4"/>
+        <view:GameUserView id="u5"/>
+        <view:GameUserView id="u6"/>
+    </s:HGroup>
+
+</s:SkinnableContainer>

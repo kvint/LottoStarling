@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkButtonSkin xmlns:fx="http://ns.adobe.com/mxml/2009"
+                   xmlns:s="library://ns.adobe.com/flex/spark"
+                   minWidth="21" minHeight="21"
+                   alpha.disabled="0.6">
+
+    <fx:Metadata><![CDATA[
+        [HostComponent("spark.components.Button")]
+        ]]></fx:Metadata>
+
+    <fx:Script><![CDATA[
+        import spark.components.supportClasses.ButtonBase;
+
+        override public function set hostComponent(value:ButtonBase):void {
+            super.hostComponent = value;
+            hostComponent.buttonMode = true;
+        }
+
+        ]]></fx:Script>
+
+    <s:states>
+        <s:State name="up"/>
+        <s:State name="over"/>
+        <s:State name="down"/>
+        <s:State name="disabled"/>
+    </s:states>
+
+    <s:BitmapImage source="@Embed('/assets/img/btn/change_room.png')"
+                   visible="true" visible.down="false"
+                   width="180" height="33"/>
+
+    <s:BitmapImage source="@Embed('/assets/img/btn/change_room_h.png')"
+                   visible="false" visible.down="true"
+                   width="180" height="33"/>
+
+    <s:Label id="labelDisplay"
+             textAlign="center" color="0xffffff" fontSize="17"
+             horizontalCenter="0" verticalCenter="0" verticalAlign="middle"
+             left="10" right="10" top="2" bottom="2"/>
+
+</s:SparkButtonSkin>

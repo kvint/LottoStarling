@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<flex-config>
+
+	<swf-version>21</swf-version>
+
+	<compiler>
+
+		<keep-as3-metadata append="true">
+			<name>Map</name>
+		</keep-as3-metadata>
+
+		<define>
+			<name>CONFIG::user</name>
+			<value>1</value>
+			<!-- values: true, false -->
+		</define>
+
+	</compiler>
+
+</flex-config>

@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="760" height="700"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+
+        import events.EventTypes;
+
+        import events.PTableEvent;
+
+        import model.MainModel;
+
+        import mx.collections.ArrayCollection;
+
+        import vo.PTable;
+        import vo.User;
+
+        [Bindable]
+        private var list : ArrayCollection = new ArrayCollection();
+
+        private var createTablePopup : CreatePTablePopup;
+
+        private function init() : void {
+            parentApplication.addEventListener(PTableEvent.TABLES_LOADED, onData);
+            parentApplication.addEventListener(PTableEvent.NEW_TABLE, newTable);
+            parentApplication.addEventListener(PTableEvent.HIDE_TABLE, hideTable);
+            parentApplication.addEventListener(PTableEvent.USER_JOIN, userJoin);
+            parentApplication.addEventListener(PTableEvent.USER_LEAVE, userLeave);
+            parentApplication.addEventListener(EventTypes.ON_LOGIN, updateChipsAndGold);
+            parentApplication.addEventListener(EventTypes.CHIPS_CHANGED, updateChipsAndGold);
+
+            //initWithTempData();
+        }
+
+        private function updateChipsAndGold(event : Event = null) : void {
+            lbChips.text = Utils.formatChips(MainModel.inst.user.chips);
+            lbGold.text = Utils.formatChips(MainModel.inst.user.gold);
+        }
+
+        private function onData(e : PTableEvent) : void {
+            list = new ArrayCollection(e.tables);
+        }
+
+        private function newTable(e : PTableEvent) : void {
+            //trace("new table", e.table);
+            list.addItem(e.table);
+        }
+
+        private function hideTable(e : PTableEvent) : void {
+            //trace("hide table", e.tableId)
+            for(var i : int = 0; i < list.length; i++) {
+                var table : PTable = list[i];
+                if(table.id == e.tableId) {
+                    list.removeItemAt(i);
+                    break;
+                }
+            }
+        }
+
+        private function userJoin(e : PTableEvent) : void {
+            //trace("user join", e.tableId, e.user.name);
+            for(var i : int = 0; i < list.length; i++) {
+                var table : PTable = list[i];
+                if(table.id == e.tableId) {
+                    if(Utils.arrExists(e.user.id, table.userIds)) break;
+                    table.userIds.push(e.user.id);
+                    list[i] = table;
+                    break;
+                }
+            }
+        }
+
+        private function userLeave(e : PTableEvent) : void {
+            //trace("user leave", e.tableId, e.userId);
+            for(var i : int = 0; i < list.length; i++) {
+                var table : PTable = list[i];
+                if(table.id == e.tableId) {
+                    Utils.arrRemove(e.userId, table.userIds);
+                    list[i] = table;
+                    break;
+                }
+            }
+        }
+
+        private function initWithTempData() : void {
+            var items : Array = [];
+            for(var i : int = 0; i < 30; i++) {
+                var table : PTable = new PTable;
+                table.id = i;
+                table.ownerId = "user_" + i;
+                table.bet = 100 * i;
+                if(Utils.randBool()) table.bet *= 1000;
+                table.isPro = (i % 3 == 0);
+                table.isQuick = (i % 5 == 0);
+                table.roomId = i;
+
+                var user : User = new User;
+                user.id = "user_" + i;
+                user.name = "User " + i;
+                user.avatarUrl = "http://cs416326.vk.me/v416326353/202f/NLCjpgRV-bQ.jpg";
+                table.owner = user;
+                table.userIds = [];
+                var num : int = Utils.rand(1, 6);
+                while(num > 0) {
+                    table.userIds.push(user.id);
+                    num--;
+                }
+
+                items.push(table);
+            }
+            list.source = items;
+        }
+
+        private function createTable() : void {
+            if(createTablePopup == null) {
+                createTablePopup = new CreatePTablePopup();
+                addElement(createTablePopup);
+            }
+            createTablePopup.visible = true;
+        }
+
+        private function goBack() : void {
+            parentApplication.currentState = "lobby";
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/room_bg.jpg')"
+                   width="760" height="700"/>
+
+    <s:Label text="Выберите стол" textAlign="center"
+             x="292" y="38" width="179"
+             fontSize="22" color="0x643a0d"/>
+
+    <s:Label text="Все столы заняты, создайте свой стол"
+             visible="{list.length == 0}"
+             fontSize="18" color="0x4a3c2e"
+             horizontalCenter="0" verticalCenter="-94"/>
+
+    <s:Scroller horizontalCenter="0" y="84">
+        <s:DataGroup width="530" height="340"
+                     clipAndEnableScrolling="true" dataProvider="{list}"
+                     itemRenderer="view.PTableView">
+            <s:layout>
+                <s:TileLayout horizontalGap="10" verticalGap="10" useVirtualLayout="true" />
+            </s:layout>
+        </s:DataGroup>
+    </s:Scroller>
+
+    <s:Button x="10" y="0" width="118" height="27"
+              label="Назад" click="goBack()"
+              skinClass="view.skin.BackWoodButton"/>
+
+    <s:HGroup x="100" y="447" width="560" verticalAlign="middle" gap="20">
+
+        <s:HGroup verticalAlign="middle">
+            <s:BitmapImage source="@Embed('/assets/img/common/chips_coin.png')"
+                           width="30" height="30"/>
+            <s:Label id="lbChips" text="500" fontSize="18" color="0xffffff"/>
+        </s:HGroup>
+
+        <s:HGroup verticalAlign="middle">
+            <s:BitmapImage source="@Embed('/assets/img/common/gold_coin.png')"
+                           width="30" height="30"/>
+            <s:Label id="lbGold" text="105K" fontSize="18" color="0xffffff"/>
+        </s:HGroup>
+
+        <view:InviteUserSmall id="inviteUser" />
+
+        <s:Group height="1" width="100%"/>
+
+        <s:Button width="180" height="33"
+                  label="Создать стол" click="createTable()"
+                  skinClass="view.skin.ChangeRoomButton"/>
+    </s:HGroup>
+
+</s:SkinnableContainer>

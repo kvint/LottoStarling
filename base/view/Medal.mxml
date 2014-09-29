@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        width="21" height="36"
+        creationComplete="update()">
+
+    <fx:Script><![CDATA[
+
+        private var _type : String = "";
+
+        public function get type() : String { return _type; }
+
+        public function set type(val : String) : void {
+            _type = val;
+            if(gold != null) update();
+        }
+
+        private function update() : void {
+            gold.visible = (_type == "gold");
+            silver.visible = (_type == "silver");
+            bronze.visible = (_type == "bronze");
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage id="gold" width="21" height="36"
+                   source="@Embed('/assets/img/common/gold_medal.png')"/>
+    <s:BitmapImage id="silver" width="21" height="36"
+                   source="@Embed('/assets/img/common/silver_medal.png')"/>
+    <s:BitmapImage id="bronze" width="21" height="36"
+                   source="@Embed('/assets/img/common/bronze_medal.png')"/>
+
+</s:SkinnableContainer>

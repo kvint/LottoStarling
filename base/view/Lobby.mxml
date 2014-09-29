@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:view="view.*"
+        width="760" height="700"
+        creationComplete="init()">
+
+    <fx:Script><![CDATA[
+        import common.Utils;
+        import controller.SoundManager;
+        import events.EventTypes;
+        import events.FindRoomEvent;
+        import events.ShowUserStatEvent;
+        import model.MainModel;
+
+        private var _model : MainModel = MainModel.inst;
+        private var _notEnoughChipsPopup : InfoPopup;
+
+        private function init() : void {
+            var preloader : SimplePreloader = new SimplePreloader();
+            preloader.width = 84 * 2;
+            preloader.height = 64 * 2;
+            preloaderHolder.addChild(preloader);
+
+            parentApplication.addEventListener(EventTypes.ON_LOGIN, onLogin);
+            parentApplication.addEventListener(EventTypes.LOST_CONNECTION, onLostConnection);
+            parentApplication.addEventListener(EventTypes.CHIPS_CHANGED, updateChipsAndGold);
+            parentApplication.addEventListener(ShowUserStatEvent.SHOW, updateStat);
+        }
+
+        private function onLogin(event : Event = null) : void {
+            userView.user = _model.user;
+            updateChipsAndGold();
+            preloaderHolder.removeChildAt(0);
+
+            friendList.load();
+
+            userView.enabled = true;
+            btnShop.enabled = true;
+            btnShop2.enabled = true;
+            btnQuickGame.enabled = true;
+            btnChooseTable.enabled = true;
+        }
+
+        private function onLostConnection(event : Event = null) : void {
+        }
+
+        private function closePopup(popup : InfoPopup) : void {
+            removeElement(popup);
+            if(popup == _notEnoughChipsPopup) _notEnoughChipsPopup = null;
+        }
+
+        private function updateChipsAndGold(event : Event = null) : void {
+            lbChips.text = Utils.formatChips(_model.user.chips);
+            lbGold.text = Utils.formatChips(_model.user.gold);
+        }
+
+        private function updateStat(e : ShowUserStatEvent) : void {
+            lbGames.text = Utils.formatNum(e.stat.totalGames);
+            lbWins.text = Utils.formatNum(e.stat.wins);
+        }
+
+        private function showShop() : void {
+            dispatchEvent(new Event(EventTypes.SHOW_SHOP, true));
+        }
+
+        private function quickGame() : void {
+            var event : FindRoomEvent = new FindRoomEvent();
+            event.bet = 100;
+            dispatchEvent(event);
+        }
+
+        private function chooseTable() : void {
+            SoundManager.inst.clickBtn();
+            parentApplication.currentState = "table_list";
+        }
+
+        ]]></fx:Script>
+
+    <s:BitmapImage source="@Embed('/assets/img/back_tile.png')"
+                   y="250" width="760" height="450" fillMode="repeat"/>
+    <s:BitmapImage source="@Embed('/assets/img/lobby_top.png')"
+                   y="0" width="760" height="263"/>
+
+    <s:BitmapImage source="@Embed('/assets/img/logo.png')"
+                   y="35" width="290" height="132" horizontalCenter="0"/>
+
+    <view:UserViewBig id="userView" x="15" y="15" enabled="false"/>
+
+
+    <s:Group x="15" y="188" width="181">
+        <s:VGroup gap="2" width="181" horizontalAlign="center">
+            <s:HGroup>
+                <s:Label text="Всего игр:" fontSize="12" color="0x4a3c2e"/>
+                <s:Label id="lbGames" text="-" fontSize="12" fontWeight="bold" color="0x4a3c2e"/>
+            </s:HGroup>
+            <s:HGroup>
+                <s:Label text="Побед:" fontSize="12" color="0x4a3c2e"/>
+                <s:Label id="lbWins" text="-" fontSize="12" fontWeight="bold" color="0x4a3c2e"/>
+            </s:HGroup>
+        </s:VGroup>
+    </s:Group>
+
+    <s:Button id="btnShop" x="244" y="216" width="274" height="49"
+              click="showShop()" enabled="false"
+              skinClass="view.skin.ShopButton"/>
+    <s:Label id="lbChips" x="280" y="230" mouseEnabled="false"
+             width="95" textAlign="center"
+             fontSize="21" color="0xffffff"/>
+    <s:Label id="lbGold" x="419" y="230" mouseEnabled="false"
+             width="95" textAlign="center"
+             fontSize="21" color="0xffffff"/>
+
+    <s:VGroup y="282" gap="10"
+              horizontalCenter="0" horizontalAlign="center">
+        <s:Button id="btnShop2"
+                  width="191" height="35"
+                  label="Пополнить" click="showShop()" enabled="false"
+                  skinClass="view.skin.ShopButton2"/>
+
+        <s:Button id="btnChooseTable"
+                  width="290" height="71"
+                  label="Выбрать стол" click="chooseTable()" enabled="false"
+                  skinClass="view.skin.PlayButton"/>
+
+        <s:Button id="btnQuickGame"
+                  width="290" height="71"
+                  label="Автоподбор стола" click="quickGame()" enabled="false"
+                  skinClass="view.skin.PlayButton"/>
+    </s:VGroup>
+
+    <view:Settings y="280" right="20" />
+
+    <view:FriendsList id="friendList" bottom="0"/>
+    <s:BitmapImage source="@Embed('/assets/img/logo.png')"
+                   y="35" width="290" height="132" horizontalCenter="0"/>
+
+    <s:SpriteVisualElement id="preloaderHolder" x="400" y="345"/>
+
+</s:SkinnableContainer>
